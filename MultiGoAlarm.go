@@ -25,7 +25,7 @@ func main() {
 		MinSize: Size {300, 400},
 		Layout: VBox {},
 		Children: []Widget {
-			GroupBox {
+			Composite {
 				Layout: HBox {},
 				Children: []Widget {
 					LineEdit {

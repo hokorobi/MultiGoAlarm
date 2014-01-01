@@ -5,14 +5,15 @@ import (
 	. "github.com/lxn/walk/declarative"
 	"fmt"
 	"log"
-	"strings"
+	// "strings"
+	"os"
 )
 
 type MyMainWindow struct {
 	*walk.MainWindow
-	searchBox *walk.LineEdit
-	textArea *walk.TextEdit
-	results *walk.ListBox
+	time *walk.LineEdit
+	message *walk.LineEdit
+	list *walk.ListBox
 }
 
 func main() {
@@ -28,26 +29,40 @@ func main() {
 				Layout: HBox {},
 				Children: []Widget {
 					LineEdit {
-						AssignTo: &mw.searchBox,
+						AssignTo: &mw.time,
 					},
 					PushButton {
-						Text: "検索",
-						OnClicked: mw.clicked,
+						Text: "&Add",
+						OnClicked: mw.clickAdd,
+					},
+					PushButton {
+						Text: "&Quit",
+						OnClicked: mw.clickQuit,
 					},
 				},
 			},
-			TextEdit {
-				AssignTo: &mw.textArea,
+			LineEdit {
+				AssignTo: &mw.message,
 			},
 			ListBox {
-				AssignTo: &mw.results,
-				Row: 5,
+				AssignTo: &mw.list,
+				Row: 10,
 			},
 		},
 	}.Run()); err != nil {
 		log.Fatal(err)
 	}
 
+}
+
+func (mw *MyMainWindow) clickAdd() {
+	time := mw.time.Text()
+	message := mw.message.Text()
+	fmt.Printf("%v %v\n", time, message)
+}
+
+func (mw *MyMainWindow) clickQuit() {
+	os.Exit(0)
 }
 
 

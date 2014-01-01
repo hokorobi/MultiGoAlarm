@@ -1,9 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
-	"fmt"
 	"log"
 	// "strings"
 	"os"
@@ -11,42 +11,42 @@ import (
 
 type MyMainWindow struct {
 	*walk.MainWindow
-	time *walk.LineEdit
+	time    *walk.LineEdit
 	message *walk.LineEdit
-	list *walk.ListBox
+	list    *walk.ListBox
 }
 
 func main() {
-	mw := &MyMainWindow {}
-	
-	if _, err := (MainWindow {
+	mw := &MyMainWindow{}
+
+	if _, err := (MainWindow{
 		AssignTo: &mw.MainWindow,
-		Title: "MultiGoAlarm",
-		MinSize: Size {300, 400},
-		Layout: VBox {},
-		Children: []Widget {
-			Composite {
-				Layout: HBox {},
-				Children: []Widget {
-					LineEdit {
+		Title:    "MultiGoAlarm",
+		MinSize:  Size{300, 400},
+		Layout:   VBox{},
+		Children: []Widget{
+			Composite{
+				Layout: HBox{},
+				Children: []Widget{
+					LineEdit{
 						AssignTo: &mw.time,
 					},
-					PushButton {
-						Text: "&Add",
+					PushButton{
+						Text:      "&Add",
 						OnClicked: mw.clickAdd,
 					},
-					PushButton {
-						Text: "&Quit",
+					PushButton{
+						Text:      "&Quit",
 						OnClicked: mw.clickQuit,
 					},
 				},
 			},
-			LineEdit {
+			LineEdit{
 				AssignTo: &mw.message,
 			},
-			ListBox {
+			ListBox{
 				AssignTo: &mw.list,
-				Row: 10,
+				Row:      10,
 			},
 		},
 	}.Run()); err != nil {
@@ -64,5 +64,3 @@ func (mw *MyMainWindow) clickAdd() {
 func (mw *MyMainWindow) clickQuit() {
 	os.Exit(0)
 }
-
-

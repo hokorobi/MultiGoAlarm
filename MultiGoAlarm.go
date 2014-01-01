@@ -41,12 +41,18 @@ func main() {
 					},
 				},
 			},
-			LineEdit{
-				AssignTo: &mw.message,
-			},
-			ListBox{
-				AssignTo: &mw.list,
-				Row:      10,
+			Composite{
+				Layout: VBox{},
+				Children: []Widget{
+					LineEdit{
+						AssignTo: &mw.message,
+					},
+					ListBox{
+						AssignTo: &mw.list,
+						Row:      10,
+					},
+
+				},
 			},
 		},
 	}.Run()); err != nil {

@@ -21,7 +21,7 @@ func main() {
 	if _, err := (MainWindow{
 		AssignTo: &mw.MainWindow,
 		Title:    "MultiGoAlarm",
-		MinSize:  Size{300, 400},
+		MinSize:  Size{400, 300},
 		Layout:   VBox{},
 		Children: []Widget{
 			Composite{
@@ -60,10 +60,31 @@ func main() {
 
 }
 
+type SubWindow struct {
+	*walk.WindowBase
+}
+
 func (mw *MyMainWindow) clickAdd() {
+	Alarm(mw)
 	time := mw.time.Text()
 	message := mw.message.Text()
 	fmt.Printf("%v %v\n", time, message)
+}
+
+func Alarm(owner walk.Form) (int, error) {
+	var dlg *walk.Dialog
+
+	return Dialog{
+		AssignTo:      &dlg,
+		Title:         "Alarm",
+		MinSize: Size{300, 300},
+		Layout:  VBox{},
+		Children: []Widget{
+			Label{
+				Text: "Name:",
+			},
+		},
+	}.Run(owner)
 }
 
 func (mw *MyMainWindow) clickQuit() {

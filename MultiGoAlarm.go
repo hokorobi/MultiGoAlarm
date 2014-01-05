@@ -6,7 +6,6 @@ import (
 	. "github.com/lxn/walk/declarative"
 	"log"
 	// "strings"
-	"os"
 )
 
 type MyMainWindow struct {
@@ -68,5 +67,5 @@ func (mw *MyMainWindow) clickAdd() {
 }
 
 func (mw *MyMainWindow) clickQuit() {
-	os.Exit(0)
+	mw.Close()
 }

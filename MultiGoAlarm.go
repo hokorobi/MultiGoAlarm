@@ -50,7 +50,6 @@ func main() {
 						AssignTo: &mw.list,
 						Row:      10,
 					},
-
 				},
 			},
 		},
@@ -75,10 +74,10 @@ func Alarm(owner walk.Form) (int, error) {
 	var dlg *walk.Dialog
 
 	return Dialog{
-		AssignTo:      &dlg,
-		Title:         "Alarm",
-		MinSize: Size{300, 300},
-		Layout:  VBox{},
+		AssignTo: &dlg,
+		Title:    "Alarm",
+		MinSize:  Size{300, 300},
+		Layout:   VBox{},
 		Children: []Widget{
 			Label{
 				Text: "Name:",

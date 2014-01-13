@@ -59,10 +59,6 @@ func main() {
 
 }
 
-type SubWindow struct {
-	*walk.WindowBase
-}
-
 func (mw *MyMainWindow) clickAdd() {
 	Alarm(mw)
 	time := mw.time.Text()

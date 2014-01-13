@@ -15,6 +15,10 @@ type MyMainWindow struct {
 	list    *walk.ListBox
 }
 
+type SubWindow struct {
+	*walk.MainWindow
+}
+
 func main() {
 	mw := &MyMainWindow{}
 
@@ -60,17 +64,17 @@ func main() {
 }
 
 func (mw *MyMainWindow) clickAdd() {
-	Alarm(mw)
+	Alarm()
 	time := mw.time.Text()
 	message := mw.message.Text()
 	fmt.Printf("%v %v\n", time, message)
 }
 
-func Alarm(owner walk.Form) (int, error) {
-	var dlg *walk.Dialog
+func Alarm() {
+	sw := &SubWindow{}
 
-	return Dialog{
-		AssignTo: &dlg,
+	if _, err := (MainWindow{
+		AssignTo: &sw.MainWindow,
 		Title:    "Alarm",
 		MinSize:  Size{300, 300},
 		Layout:   VBox{},
@@ -79,7 +83,9 @@ func Alarm(owner walk.Form) (int, error) {
 				Text: "Name:",
 			},
 		},
-	}.Run(owner)
+	}.Run()); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (mw *MyMainWindow) clickQuit() {

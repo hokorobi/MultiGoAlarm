@@ -5,6 +5,8 @@ import (
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
 	"log"
+	"time"
+	"os"
 	// "strings"
 )
 
@@ -61,6 +63,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	for now := range time.Tick(time.Second) {
+		fmt.Println(now)
+	}
+
 }
 
 func (mw *MyMainWindow) clickAdd() {
@@ -89,5 +95,5 @@ func Alarm() {
 }
 
 func (mw *MyMainWindow) clickQuit() {
-	mw.Close()
+	os.Exit(0)
 }

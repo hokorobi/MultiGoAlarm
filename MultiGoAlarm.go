@@ -22,6 +22,35 @@ type SubWindow struct {
 }
 
 func main() {
+
+	// load icon
+	icon, err := walk.NewIconFromFile("MultiGoAlarm.ico");
+	if  err != nil {
+		log.Fatal(err)
+	}
+
+	ni, err := walk.NewNotifyIcon();
+	if  err != nil {
+		log.Fatal(err)
+	}
+	defer ni.Dispose()
+
+	// Set the icon and a tool tip text.
+	if err := ni.SetIcon(icon); err != nil {
+		log.Fatal(err)
+	}
+
+	// We put an exit action into the context menu.
+	exitAction := walk.NewAction()
+	if err := exitAction.SetText("E&xit"); err != nil {
+		log.Fatal(err)
+	}
+	exitAction.Triggered().Attach(func() { walk.App().Exit(0) })
+	if err := ni.ContextMenu().Actions().Add(exitAction); err != nil {
+		log.Fatal(err)
+	}
+
+
 	mw := &MyMainWindow{}
 
 	if _, err := (MainWindow{
@@ -62,6 +91,11 @@ func main() {
 	}.Run()); err != nil {
 		log.Fatal(err)
 	}
+	
+	// The notify icon is hidden initially, so we have to make it visible.
+	if err := ni.SetVisible(true); err != nil {
+		log.Fatal(err)
+	}
 
 	for now := range time.Tick(time.Second) {
 		fmt.Println(now)
@@ -71,9 +105,9 @@ func main() {
 
 func (mw *MyMainWindow) clickAdd() {
 	Alarm()
-	time := mw.time.Text()
-	message := mw.message.Text()
-	fmt.Printf("%v %v\n", time, message)
+	// time := mw.time.Text()
+	// message := mw.message.Text()
+	// fmt.Printf("%v %v\n", time, message)
 }
 
 func Alarm() {

@@ -5,8 +5,8 @@ import (
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
 	"log"
-	"time"
 	"os"
+	"time"
 	// "strings"
 )
 
@@ -65,7 +65,7 @@ func main() {
 	}.Run()); err != nil {
 		log.Fatal(err)
 	}
-	
+
 	for now := range time.Tick(time.Second) {
 		fmt.Println(now)
 	}
@@ -103,13 +103,13 @@ func (mw *MyMainWindow) clickQuit() {
 
 func notifyIcon() *walk.NotifyIcon {
 	// load icon
-	icon, err := walk.NewIconFromFile("MultiGoAlarm.ico");
-	if  err != nil {
+	icon, err := walk.NewIconFromFile("MultiGoAlarm.ico")
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	ni, err := walk.NewNotifyIcon();
-	if  err != nil {
+	ni, err := walk.NewNotifyIcon()
+	if err != nil {
 		log.Fatal(err)
 	}
 	defer ni.Dispose()

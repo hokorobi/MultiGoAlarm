@@ -90,15 +90,19 @@ func (mw *MyMainWindow) clickAdd() {
 		walk.MsgBox(mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
 		return
 	}
-	// walk.MsgBox(mw, "confirm", start.String() + end.String() + item.message, walk.MsgBoxOK)
+	walk.MsgBox(mw, "confirm", item.start.String() + item.end.String() + item.message, walk.MsgBoxOK)
 }
 
 func GetTime(s string) (*time.Time, *time.Time) {
 	start := time.Now()
 	// 数字だけなら分として扱う
 	if _, err := strconv.Atoi(s); err == nil {
-		m, _ := time.ParseDuration(s + "m")
-		end := start.Add(m)
+		d, _ := time.ParseDuration(s + "m")
+		end := start.Add(d)
+		return &start, &end
+	}
+	if d, err := time.ParseDuration(s); err == nil {
+		end := start.Add(d)
 		return &start, &end
 	}
 

@@ -90,6 +90,7 @@ func (mw *MyMainWindow) clickAdd() {
 		walk.MsgBox(mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
 		return
 	}
+	// debug
 	walk.MsgBox(mw, "confirm", item.start.String() + item.end.String() + item.message, walk.MsgBoxOK)
 }
 
@@ -97,12 +98,18 @@ func GetTime(s string) (*time.Time, *time.Time) {
 	start := time.Now()
 	// 数字だけなら分として扱う
 	if _, err := strconv.Atoi(s); err == nil {
-		d, _ := time.ParseDuration(s + "m")
-		end := start.Add(d)
+		end := start.Add(time.Duration{m * time.Minute})
 		return &start, &end
 	}
 	if d, err := time.ParseDuration(s); err == nil {
 		end := start.Add(d)
+		return &start, &end
+	}
+	re := regexp.MustCompile("([0-9]+):([0-9]+)")
+	if result := re.MatchString(s); if result {
+		hh := time.Duration(re.SubexpNames()[1].Atoi())
+		mm := time.Duration(re.SubexpNames()[1].Atoi())
+		end := Parse(start.Year(), start.Month(), start.Day, hh, mm, start.Second(), start.NanoSecond(), start.Location())
 		return &start, &end
 	}
 

@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/lxn/walk"
-	. "github.com/lxn/walk/declarative"
 	"log"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/lxn/walk"
+	. "github.com/lxn/walk/declarative"
 	// "strings"
 )
 
@@ -22,9 +23,20 @@ type SubWindow struct {
 }
 
 type AlarmItem struct {
-	start *time.Time
-	end *time.Time
+	start   *time.Time
+	end     *time.Time
 	message string
+}
+
+func (i *AlarmItem) New(timeString string, message string) *AlarmItem {
+	start, end := GetTime(timeString)
+	if start == nil {
+		return nil
+	}
+	i.start = start
+	i.end = end
+	i.message = message
+	return i
 }
 
 func main() {
@@ -75,16 +87,13 @@ func main() {
 }
 
 func (mw *MyMainWindow) clickAdd() {
+	item := &AlarmItem{}
 	// Alarm()
-	var item = AlarmItem{}
-	start, end := GetTime(mw.time.Text())
-	if start == nil {
-		walk.MsgBox(mw, "Error", "Enter valid time", walk.MsgBoxOK)
+	item = item.New(mw.time.Text(), mw.message.Text())
+	if item == nil {
+		walk.MsgBox(mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
 		return
 	}
-	item.start = start
-	item.end = end
-	item.message = mw.message.Text()
 	// walk.MsgBox(mw, "confirm", start.String() + end.String() + item.message, walk.MsgBoxOK)
 }
 

@@ -5,7 +5,8 @@ import (
 	. "github.com/lxn/walk/declarative"
 	"log"
 	"os"
-	// "time"
+	"strconv"
+	"time"
 	// "strings"
 )
 
@@ -18,6 +19,12 @@ type MyMainWindow struct {
 
 type SubWindow struct {
 	*walk.MainWindow
+}
+
+type AlarmItem struct {
+	start *time.Time
+	end *time.Time
+	message string
 }
 
 func main() {
@@ -68,10 +75,29 @@ func main() {
 }
 
 func (mw *MyMainWindow) clickAdd() {
-	Alarm()
-	// time := mw.time.Text()
-	// message := mw.message.Text()
-	// fmt.Printf("%v %v\n", time, message)
+	// Alarm()
+	var item = AlarmItem{}
+	start, end := GetTime(mw.time.Text())
+	if start == nil {
+		walk.MsgBox(mw, "Error", "Enter valid time", walk.MsgBoxOK)
+		return
+	}
+	item.start = start
+	item.end = end
+	item.message = mw.message.Text()
+	// walk.MsgBox(mw, "confirm", start.String() + end.String() + item.message, walk.MsgBoxOK)
+}
+
+func GetTime(s string) (*time.Time, *time.Time) {
+	start := time.Now()
+	// 数字だけなら分として扱う
+	if _, err := strconv.Atoi(s); err == nil {
+		m, _ := time.ParseDuration(s + "m")
+		end := start.Add(m)
+		return &start, &end
+	}
+
+	return nil, nil
 }
 
 func Alarm() {

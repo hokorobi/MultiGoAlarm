@@ -3,12 +3,13 @@ package main
 import (
 	"log"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
-	// "strings"
 )
 
 type MyMainWindow struct {
@@ -91,25 +92,32 @@ func (mw *MyMainWindow) clickAdd() {
 		return
 	}
 	// debug
-	walk.MsgBox(mw, "confirm", item.start.String() + item.end.String() + item.message, walk.MsgBoxOK)
+	walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
 }
 
 func GetTime(s string) (*time.Time, *time.Time) {
 	start := time.Now()
 	// 数字だけなら分として扱う
-	if _, err := strconv.Atoi(s); err == nil {
-		end := start.Add(time.Duration{m * time.Minute})
+	if d, err := time.ParseDuration(s + "m"); err == nil {
+		end := start.Add(d)
 		return &start, &end
 	}
+	// 1h2m などを解釈
 	if d, err := time.ParseDuration(s); err == nil {
 		end := start.Add(d)
 		return &start, &end
 	}
-	re := regexp.MustCompile("([0-9]+):([0-9]+)")
-	if result := re.MatchString(s); if result {
-		hh := time.Duration(re.SubexpNames()[1].Atoi())
-		mm := time.Duration(re.SubexpNames()[1].Atoi())
-		end := Parse(start.Year(), start.Month(), start.Day, hh, mm, start.Second(), start.NanoSecond(), start.Location())
+	// hh:mm
+	re := regexp.MustCompile("^[0-9]+:[0-9]+$")
+	if result := re.MatchString(s); result {
+		hhmm := strings.Split(s, ":")
+		hh, _ := strconv.Atoi(hhmm[0])
+		mm, _ := strconv.Atoi(hhmm[1])
+		end := time.Date(start.Year(), start.Month(), start.Day(), hh, mm, 0, 0, start.Location())
+		// 翌日の hh:mm
+		if start.After(end) {
+			end = end.Add(time.Hour * 24)
+		}
 		return &start, &end
 	}
 

@@ -1,12 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
 	"log"
 	"os"
-	"time"
+	// "time"
 	// "strings"
 )
 
@@ -23,7 +22,8 @@ type SubWindow struct {
 
 func main() {
 
-	notifyIcon()
+	ni := notifyIcon()
+	defer ni.Dispose()
 
 	mw := &MyMainWindow{}
 
@@ -65,11 +65,6 @@ func main() {
 	}.Run()); err != nil {
 		log.Fatal(err)
 	}
-
-	for now := range time.Tick(time.Second) {
-		fmt.Println(now)
-	}
-
 }
 
 func (mw *MyMainWindow) clickAdd() {
@@ -112,7 +107,6 @@ func notifyIcon() *walk.NotifyIcon {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer ni.Dispose()
 
 	// Set the icon and a tool tip text.
 	if err := ni.SetIcon(icon); err != nil {

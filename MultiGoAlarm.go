@@ -28,15 +28,13 @@ type AlarmItem struct {
 	message string
 }
 
-func (i *AlarmItem) New(timeString string, message string) *AlarmItem {
+func NewAlarmItem(timeString string, message string) *AlarmItem {
 	start, end := GetTime(timeString)
 	if start == nil {
 		return nil
 	}
-	i.start = start
-	i.end = end
-	i.message = message
-	return i
+	item := AlarmItem{start, end, message}
+	return &item
 }
 
 func main() {
@@ -87,9 +85,7 @@ func main() {
 }
 
 func (mw *MyMainWindow) clickAdd() {
-	item := &AlarmItem{}
-	// Alarm()
-	item = item.New(mw.time.Text(), mw.message.Text())
+	item := NewAlarmItem(mw.time.Text(), mw.message.Text())
 	if item == nil {
 		walk.MsgBox(mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
 		return

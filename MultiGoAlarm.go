@@ -29,6 +29,15 @@ type AlarmItem struct {
 	message string
 }
 
+type AlarmItems struct {
+	items []AlarmItem
+}
+
+func (items *AlarmItems) add(item AlarmItem) {
+	items.items = append(items.items, item)
+	return
+}
+
 func NewAlarmItem(timeString string, message string) *AlarmItem {
 	start, end := GetTime(timeString)
 	if start == nil {
@@ -45,6 +54,8 @@ func main() {
 
 	mw := &MyMainWindow{}
 
+	items := AlarmItems{}
+
 	if _, err := (MainWindow{
 		AssignTo: &mw.MainWindow,
 		Title:    "MultiGoAlarm",
@@ -59,7 +70,7 @@ func main() {
 					},
 					PushButton{
 						Text:      "&Add",
-						OnClicked: mw.clickAdd,
+						OnClicked: mw.clickAdd(items),
 					},
 					PushButton{
 						Text:      "&Quit",
@@ -85,7 +96,7 @@ func main() {
 	}
 }
 
-func (mw *MyMainWindow) clickAdd() {
+func (mw *MyMainWindow) clickAdd(items AlarmItems) {
 	item := NewAlarmItem(mw.time.Text(), mw.message.Text())
 	if item == nil {
 		walk.MsgBox(mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
@@ -93,6 +104,7 @@ func (mw *MyMainWindow) clickAdd() {
 	}
 	// debug
 	walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
+	items.add(item)
 }
 
 func GetTime(s string) (*time.Time, *time.Time) {

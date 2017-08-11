@@ -69,8 +69,10 @@ func main() {
 						AssignTo: &mw.time,
 					},
 					PushButton{
-						Text:      "&Add",
-						OnClicked: mw.clickAdd(items),
+						Text: "&Add",
+						OnClicked: func() {
+							mw.clickAdd(items)
+						},
 					},
 					PushButton{
 						Text:      "&Quit",
@@ -104,7 +106,7 @@ func (mw *MyMainWindow) clickAdd(items AlarmItems) {
 	}
 	// debug
 	walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
-	items.add(item)
+	items.add(*item)
 }
 
 func GetTime(s string) (*time.Time, *time.Time) {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"regexp"
@@ -35,7 +36,24 @@ type AlarmItems struct {
 
 func (items *AlarmItems) add(item AlarmItem) {
 	items.items = append(items.items, item)
+	items.write()
 	return
+}
+
+func (items *AlarmItems) write() {
+	f, err := os.Create("timerlist.json")
+	defer f.Close()
+	if err != nil {
+		return
+	}
+	enc := json.NewEncoder(f)
+	if err != nil {
+		return
+	}
+	err = enc.Encode(items)
+	if err != nil {
+		return
+	}
 }
 
 func NewAlarmItem(timeString string, message string) *AlarmItem {

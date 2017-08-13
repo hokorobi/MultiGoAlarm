@@ -29,6 +29,7 @@ type AlarmItem struct {
 	start   *time.Time
 	end     *time.Time
 	message string
+	value   string
 }
 
 type AlarmItems struct {
@@ -61,12 +62,19 @@ func (items *AlarmItems) write() {
 	}
 }
 
-func NewAlarmItem(timeString string, message string) *AlarmItem {
-	start, end := GetTime(timeString)
+func NewAlarmItem(timeString string) *AlarmItem {
+	var message = ""
+	if strings.Index(timeString, " ") > 0 {
+		start, end := GetTime(timeString[0:strings.Index(timeString, " ")])
+		message = timeString[strings.Index(timeString, " "):]
+	} else {
+		start, end := GetTime(timeString)
+	}
+
 	if start == nil {
 		return nil
 	}
-	item := AlarmItem{start, end, message}
+	item := AlarmItem{start, end, message, end.Sub(*start).String() + " " + message}
 	return &item
 }
 
@@ -134,7 +142,7 @@ func main() {
 }
 
 func (mw *MyMainWindow) clickAdd() {
-	item := NewAlarmItem(mw.time.Text(), mw.message.Text())
+	item := NewAlarmItem(mw.time.Text())
 	if item == nil {
 		walk.MsgBox(mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
 		return
@@ -188,7 +196,7 @@ func (m *AlarmItems) ItemCount() int {
 }
 
 func (m *AlarmItems) Value(index int) interface{} {
-	return m.items[index].message
+	return m.items[index].value
 }
 
 func Alarm() {

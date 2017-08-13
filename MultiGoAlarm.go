@@ -13,17 +13,6 @@ import (
 	. "github.com/lxn/walk/declarative"
 )
 
-type MyMainWindow struct {
-	*walk.MainWindow
-	time  *walk.LineEdit
-	lb    *walk.ListBox
-	model *AlarmItems
-}
-
-type SubWindow struct {
-	*walk.MainWindow
-}
-
 type AlarmItem struct {
 	start   *time.Time
 	end     *time.Time
@@ -34,6 +23,11 @@ type AlarmItem struct {
 type AlarmItems struct {
 	walk.ListModelBase
 	items []AlarmItem
+}
+
+func NewAlarmModel() *AlarmItems {
+	m := &AlarmItems{items: make([]AlarmItem, 0)}
+	return m
 }
 
 func (item *AlarmItem) getTime(s string) (*time.Time, *time.Time) {
@@ -94,6 +88,14 @@ func (items *AlarmItems) write() {
 	}
 }
 
+func (m *AlarmItems) ItemCount() int {
+	return len(m.items)
+}
+
+func (m *AlarmItems) Value(index int) interface{} {
+	return m.items[index].value
+}
+
 func NewAlarmItem(s string) *AlarmItem {
 	var message string
 	var timeString string
@@ -117,6 +119,17 @@ func NewAlarmItem(s string) *AlarmItem {
 	item.value = end.Sub(*start).String() + " " + message
 
 	return item
+}
+
+type MyMainWindow struct {
+	*walk.MainWindow
+	time  *walk.LineEdit
+	lb    *walk.ListBox
+	model *AlarmItems
+}
+
+type SubWindow struct {
+	*walk.MainWindow
 }
 
 func main() {
@@ -190,23 +203,6 @@ func (mw *MyMainWindow) clickAdd() {
 	// walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
 	mw.model.add(*item)
 	mw.lb.SetModel(mw.model)
-}
-
-func (mw *MyMainWindow) updatelist() {
-	return
-}
-
-func NewAlarmModel() *AlarmItems {
-	m := &AlarmItems{items: make([]AlarmItem, 0)}
-	return m
-}
-
-func (m *AlarmItems) ItemCount() int {
-	return len(m.items)
-}
-
-func (m *AlarmItems) Value(index int) interface{} {
-	return m.items[index].value
 }
 
 func Alarm() {

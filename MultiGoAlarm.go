@@ -142,6 +142,7 @@ func (mw *MyMainWindow) clickAdd() {
 	// debug
 	walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
 	mw.model.add(*item)
+	mw.lb.SetModel(mw.model)
 }
 
 func (mw *MyMainWindow) updatelist() {

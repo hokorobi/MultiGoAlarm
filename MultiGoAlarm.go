@@ -68,6 +68,13 @@ func NewAlarmItem(timeString string, message string) *AlarmItem {
 }
 
 func main() {
+	logfile, err := os.OpenFile("./test.log", os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		panic("cannnot open test.log:" + err.Error())
+	}
+	defer logfile.Close()
+	log.SetOutput(logfile)
+	log.SetFlags(log.Ldate | log.Ltime)
 
 	ni := notifyIcon()
 	defer ni.Dispose()
@@ -113,14 +120,14 @@ func main() {
 	}.Run()); err != nil {
 		log.Fatal(err)
 	}
-	t := time.NewTicker(3 * time.Second)
-	for {
-		select {
-		case <-t.C:
-			mw.updatelist()
-		}
-		t.Stop()
-	}
+	// t := time.NewTicker(3 * time.Second)
+	// for {
+	// 	select {
+	// 	case <-t.C:
+	// 		mw.updatelist()
+	// 	}
+	// 	t.Stop()
+	// }
 }
 
 func (mw *MyMainWindow) clickAdd() {

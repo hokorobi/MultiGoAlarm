@@ -17,7 +17,8 @@ type MyMainWindow struct {
 	*walk.MainWindow
 	time    *walk.LineEdit
 	message *walk.LineEdit
-	list    *walk.ListBox
+	lb      *walk.ListBox
+	model   *AlarmItems
 }
 
 type SubWindow struct {
@@ -32,6 +33,7 @@ type AlarmItem struct {
 
 type AlarmItems struct {
 	items []AlarmItem
+	walk.ListModelBase
 }
 
 func (items *AlarmItems) add(item AlarmItem) {
@@ -70,9 +72,7 @@ func main() {
 	ni := notifyIcon()
 	defer ni.Dispose()
 
-	mw := &MyMainWindow{}
-
-	items := AlarmItems{}
+	mw := &MyMainWindow{model: NewAlarmModel()}
 
 	if _, err := (MainWindow{
 		AssignTo: &mw.MainWindow,
@@ -87,10 +87,8 @@ func main() {
 						AssignTo: &mw.time,
 					},
 					PushButton{
-						Text: "&Add",
-						OnClicked: func() {
-							mw.clickAdd(items)
-						},
+						Text:      "&Add",
+						OnClicked: mw.clickAdd,
 					},
 					PushButton{
 						Text:      "&Quit",
@@ -105,7 +103,8 @@ func main() {
 						AssignTo: &mw.message,
 					},
 					ListBox{
-						AssignTo: &mw.list,
+						AssignTo: &mw.lb,
+						Model:    mw.model,
 						Row:      10,
 					},
 				},
@@ -114,9 +113,17 @@ func main() {
 	}.Run()); err != nil {
 		log.Fatal(err)
 	}
+	t := time.NewTicker(3 * time.Second)
+	for {
+		select {
+		case <-t.C:
+			mw.updatelist()
+		}
+		t.Stop()
+	}
 }
 
-func (mw *MyMainWindow) clickAdd(items AlarmItems) {
+func (mw *MyMainWindow) clickAdd() {
 	item := NewAlarmItem(mw.time.Text(), mw.message.Text())
 	if item == nil {
 		walk.MsgBox(mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
@@ -124,7 +131,11 @@ func (mw *MyMainWindow) clickAdd(items AlarmItems) {
 	}
 	// debug
 	walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
-	items.add(*item)
+	mw.model.add(*item)
+}
+
+func (mw *MyMainWindow) updatelist() {
+	return
 }
 
 func GetTime(s string) (*time.Time, *time.Time) {
@@ -154,6 +165,11 @@ func GetTime(s string) (*time.Time, *time.Time) {
 	}
 
 	return nil, nil
+}
+
+func NewAlarmModel() *AlarmItems {
+	m := &AlarmItems{items: make([]AlarmItem, 0)}
+	return m
 }
 
 func Alarm() {

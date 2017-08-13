@@ -189,6 +189,10 @@ func main() {
 }
 
 func (mw *MyMainWindow) lb_ItemActivated() {
+	if mw.lb.CurrentIndex() < 0 {
+		return
+	}
+
 	mw.model.del(mw.lb.CurrentIndex())
 	mw.lb.SetModel(mw.model)
 }

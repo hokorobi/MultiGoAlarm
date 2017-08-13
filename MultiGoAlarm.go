@@ -15,10 +15,9 @@ import (
 
 type MyMainWindow struct {
 	*walk.MainWindow
-	time    *walk.LineEdit
-	message *walk.LineEdit
-	lb      *walk.ListBox
-	model   *AlarmItems
+	time  *walk.LineEdit
+	lb    *walk.ListBox
+	model *AlarmItems
 }
 
 type SubWindow struct {
@@ -62,14 +61,18 @@ func (items *AlarmItems) write() {
 	}
 }
 
-func NewAlarmItem(timeString string) *AlarmItem {
-	var message = ""
-	if strings.Index(timeString, " ") > 0 {
-		start, end := GetTime(timeString[0:strings.Index(timeString, " ")])
-		message = timeString[strings.Index(timeString, " "):]
+func NewAlarmItem(s string) *AlarmItem {
+	var message string
+	var timeString string
+
+	if strings.Index(s, " ") > 0 {
+		timeString = s[0:strings.Index(s, " ")]
+		message = s[strings.Index(s, " "):]
 	} else {
-		start, end := GetTime(timeString)
+		timeString = s
+		message = ""
 	}
+	start, end := GetTime(timeString)
 
 	if start == nil {
 		return nil
@@ -114,18 +117,10 @@ func main() {
 					},
 				},
 			},
-			Composite{
-				Layout: VBox{},
-				Children: []Widget{
-					LineEdit{
-						AssignTo: &mw.message,
-					},
-					ListBox{
-						AssignTo: &mw.lb,
-						Model:    mw.model,
-						Row:      10,
-					},
-				},
+			ListBox{
+				AssignTo: &mw.lb,
+				Model:    mw.model,
+				Row:      10,
 			},
 		},
 	}.Run()); err != nil {

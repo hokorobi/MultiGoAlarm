@@ -32,8 +32,8 @@ type AlarmItem struct {
 }
 
 type AlarmItems struct {
-	items []AlarmItem
 	walk.ListModelBase
+	items []AlarmItem
 }
 
 func (items *AlarmItems) add(item AlarmItem) {
@@ -177,6 +177,14 @@ func GetTime(s string) (*time.Time, *time.Time) {
 func NewAlarmModel() *AlarmItems {
 	m := &AlarmItems{items: make([]AlarmItem, 0)}
 	return m
+}
+
+func (m *AlarmItems) ItemCount() int {
+	return len(m.items)
+}
+
+func (m *AlarmItems) Value(index int) interface{} {
+	return m.items[index].message
 }
 
 func Alarm() {

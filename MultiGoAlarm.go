@@ -37,10 +37,7 @@ type AlarmItems struct {
 }
 
 func (items *AlarmItems) add(item AlarmItem) {
-	// log.Println(item.message)
 	items.items = append(items.items, item)
-	// log.Println(item.message) //message も受け取れている
-	// log.Println(len(items.items)) //追加はされている
 	// items.write()
 	return
 }
@@ -53,14 +50,17 @@ func (items *AlarmItems) write() {
 	f, err := os.Create("timerlist.json")
 	defer f.Close()
 	if err != nil {
+		log.Println(err)
 		return
 	}
 	enc := json.NewEncoder(f)
 	if err != nil {
+		log.Println(err)
 		return
 	}
 	err = enc.Encode(items)
 	if err != nil {
+		log.Println(err)
 		return
 	}
 }
@@ -153,7 +153,7 @@ func (mw *MyMainWindow) clickAdd() {
 		return
 	}
 	// debug
-	walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
+	// walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
 	mw.model.add(*item)
 	mw.lb.SetModel(mw.model)
 }

@@ -36,6 +36,35 @@ type AlarmItems struct {
 	items []AlarmItem
 }
 
+func (item *AlarmItem) getTime(s string) (*time.Time, *time.Time) {
+	start := time.Now()
+	// 数字だけなら分として扱う
+	if d, err := time.ParseDuration(s + "m"); err == nil {
+		end := start.Add(d)
+		return &start, &end
+	}
+	// 1h2m などを解釈
+	if d, err := time.ParseDuration(s); err == nil {
+		end := start.Add(d)
+		return &start, &end
+	}
+	// hh:mm
+	re := regexp.MustCompile("^[0-9]+:[0-9]+$")
+	if re.MatchString(s) {
+		hhmm := strings.Split(s, ":")
+		hh, _ := strconv.Atoi(hhmm[0])
+		mm, _ := strconv.Atoi(hhmm[1])
+		end := time.Date(start.Year(), start.Month(), start.Day(), hh, mm, 0, 0, start.Location())
+		// 翌日の hh:mm
+		if start.After(end) {
+			end = end.Add(time.Hour * 24)
+		}
+		return &start, &end
+	}
+
+	return nil, nil
+}
+
 func (items *AlarmItems) add(item AlarmItem) {
 	items.items = append(items.items, item)
 	// items.write()
@@ -76,13 +105,18 @@ func NewAlarmItem(s string) *AlarmItem {
 		timeString = s
 		message = ""
 	}
-	start, end := GetTime(timeString)
 
+	item := new(AlarmItem)
+	start, end := item.getTime(timeString)
 	if start == nil {
 		return nil
 	}
-	item := AlarmItem{start, end, message, end.Sub(*start).String() + " " + message}
-	return &item
+	item.start = start
+	item.end = end
+	item.message = message
+	item.value = end.Sub(*start).String() + " " + message
+
+	return item
 }
 
 func main() {
@@ -160,35 +194,6 @@ func (mw *MyMainWindow) clickAdd() {
 
 func (mw *MyMainWindow) updatelist() {
 	return
-}
-
-func GetTime(s string) (*time.Time, *time.Time) {
-	start := time.Now()
-	// 数字だけなら分として扱う
-	if d, err := time.ParseDuration(s + "m"); err == nil {
-		end := start.Add(d)
-		return &start, &end
-	}
-	// 1h2m などを解釈
-	if d, err := time.ParseDuration(s); err == nil {
-		end := start.Add(d)
-		return &start, &end
-	}
-	// hh:mm
-	re := regexp.MustCompile("^[0-9]+:[0-9]+$")
-	if result := re.MatchString(s); result {
-		hhmm := strings.Split(s, ":")
-		hh, _ := strconv.Atoi(hhmm[0])
-		mm, _ := strconv.Atoi(hhmm[1])
-		end := time.Date(start.Year(), start.Month(), start.Day(), hh, mm, 0, 0, start.Location())
-		// 翌日の hh:mm
-		if start.After(end) {
-			end = end.Add(time.Hour * 24)
-		}
-		return &start, &end
-	}
-
-	return nil, nil
 }
 
 func NewAlarmModel() *AlarmItems {

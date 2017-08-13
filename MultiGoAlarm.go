@@ -19,6 +19,7 @@ type AlarmItem struct {
 	end     *time.Time
 	message string
 	value   string
+	id      string
 }
 
 type AlarmItems struct {
@@ -96,10 +97,34 @@ func (items *AlarmItems) del(i int) {
 	items.items = append(items.items[:i], items.items[i+1:]...)
 }
 
-func (items *AlarmItems) update() {
-	for i := 0; i < len(items.items); i++ {
-		items.items[i].setValue(time.Now())
+func (items *AlarmItems) delId(id string) {
+	for i := range items.items {
+		if items.items[i].id == id {
+			items.del(i)
+			return
+		}
 	}
+}
+
+func (items *AlarmItems) update() []AlarmItem {
+	var candidateItems []AlarmItem
+	var candidateIds []string
+
+	now := time.Now()
+	for i := 0; i < len(items.items); i++ {
+		// 終了時刻を過ぎている or 同じ
+		if !items.items[i].end.After(now) {
+			candidateItems = append(candidateItems, items.items[i])
+			candidateIds = append(candidateIds, items.items[i].id)
+		} else {
+			items.items[i].setValue(now)
+		}
+	}
+	for i := range candidateIds {
+		items.delId(candidateIds[i])
+	}
+
+	return candidateItems
 }
 
 func (items *AlarmItems) write() {
@@ -150,6 +175,7 @@ func NewAlarmItem(s string) *AlarmItem {
 	item.end = end
 	item.message = message
 	item.setValue(*start)
+	item.id = fmt.Sprint(start.Unix())
 
 	return item
 }
@@ -179,13 +205,18 @@ func main() {
 
 	mw := &MyMainWindow{model: NewAlarmModel()}
 
+	var items []AlarmItem
+
 	go func() {
 		t := time.NewTicker(time.Second)
 		for {
 			select {
 			case <-t.C:
 				// log.Println("tick")
-				mw.update()
+				items = mw.update()
+				// for i := range items {
+				// 	Alarm(items[i].message)
+				// }
 			}
 		}
 		t.Stop()
@@ -232,7 +263,6 @@ func (mw *MyMainWindow) lb_ItemActivated() {
 	}
 
 	mw.model.del(mw.lb.CurrentIndex())
-	mw.model.update()
 	mw.lb.SetModel(mw.model)
 }
 
@@ -245,21 +275,21 @@ func (mw *MyMainWindow) clickAdd() {
 	// debug
 	// walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
 	mw.model.add(*item)
-	mw.model.update()
 	mw.lb.SetModel(mw.model)
 }
 
-func (mw *MyMainWindow) update() {
+func (mw *MyMainWindow) update() []AlarmItem {
 	if len(mw.model.items) <= 0 {
-		return
+		return nil
 	}
 
 	// log.Println("update")
-	mw.model.update()
+	items := mw.model.update()
 	mw.lb.SetModel(mw.model)
+	return items
 }
 
-func Alarm() {
+func Alarm(message string) {
 	sw := &SubWindow{}
 
 	if _, err := (MainWindow{
@@ -269,7 +299,7 @@ func Alarm() {
 		Layout:   VBox{},
 		Children: []Widget{
 			Label{
-				Text: "Name:",
+				Text: message,
 			},
 		},
 	}.Run()); err != nil {

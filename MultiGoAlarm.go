@@ -37,8 +37,11 @@ type AlarmItems struct {
 }
 
 func (items *AlarmItems) add(item AlarmItem) {
+	// log.Println(item.message)
 	items.items = append(items.items, item)
-	items.write()
+	// log.Println(item.message) //message も受け取れている
+	// log.Println(len(items.items)) //追加はされている
+	// items.write()
 	return
 }
 

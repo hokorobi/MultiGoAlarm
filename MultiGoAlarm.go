@@ -9,17 +9,6 @@ import (
 	. "github.com/lxn/walk/declarative"
 )
 
-type MyMainWindow struct {
-	*walk.MainWindow
-	time  *walk.LineEdit
-	lb    *walk.ListBox
-	model *AlarmItems
-}
-
-type SubWindow struct {
-	*walk.MainWindow
-}
-
 func main() {
 	logfile, err := os.OpenFile("./test.log", os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
@@ -86,6 +75,13 @@ func main() {
 
 }
 
+type MyMainWindow struct {
+	*walk.MainWindow
+	time  *walk.LineEdit
+	lb    *walk.ListBox
+	model *AlarmItems
+}
+
 func (mw *MyMainWindow) lb_ItemActivated() {
 	if mw.lb.CurrentIndex() < 0 {
 		return
@@ -118,6 +114,14 @@ func (mw *MyMainWindow) update() []AlarmItem {
 	return items
 }
 
+func (mw *MyMainWindow) clickQuit() {
+	os.Exit(0)
+}
+
+type SubWindow struct {
+	*walk.MainWindow
+}
+
 func Alarm(message string) {
 	sw := &SubWindow{}
 
@@ -134,10 +138,6 @@ func Alarm(message string) {
 	}.Run()); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func (mw *MyMainWindow) clickQuit() {
-	os.Exit(0)
 }
 
 func notifyIcon() *walk.NotifyIcon {

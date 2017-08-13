@@ -69,6 +69,12 @@ func (items *AlarmItems) del(i int) {
 	items.items = append(items.items[:i], items.items[i+1:]...)
 }
 
+func (items *AlarmItems) update() {
+	for i := 0; i < len(items.items); i++ {
+		items.items[i].value = items.items[i].end.Sub(time.Now()).String() + " " + items.items[i].message
+	}
+}
+
 func (items *AlarmItems) write() {
 	f, err := os.Create("timerlist.json")
 	defer f.Close()
@@ -146,6 +152,16 @@ func main() {
 
 	mw := &MyMainWindow{model: NewAlarmModel()}
 
+	// 無限ループっぽい
+	// t := time.NewTicker(time.Second)
+	// for {
+	// 	select {
+	// 	case <-t.C:
+	// 		mw.update()
+	// 	}
+	// 	t.Stop()
+	// }
+
 	if _, err := (MainWindow{
 		AssignTo: &mw.MainWindow,
 		Title:    "MultiGoAlarm",
@@ -178,14 +194,7 @@ func main() {
 	}.Run()); err != nil {
 		log.Fatal(err)
 	}
-	// t := time.NewTicker(3 * time.Second)
-	// for {
-	// 	select {
-	// 	case <-t.C:
-	// 		mw.updatelist()
-	// 	}
-	// 	t.Stop()
-	// }
+
 }
 
 func (mw *MyMainWindow) lb_ItemActivated() {
@@ -194,6 +203,7 @@ func (mw *MyMainWindow) lb_ItemActivated() {
 	}
 
 	mw.model.del(mw.lb.CurrentIndex())
+	mw.model.update()
 	mw.lb.SetModel(mw.model)
 }
 
@@ -206,6 +216,17 @@ func (mw *MyMainWindow) clickAdd() {
 	// debug
 	// walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
 	mw.model.add(*item)
+	mw.model.update()
+	mw.lb.SetModel(mw.model)
+}
+
+func (mw *MyMainWindow) update() {
+	log.Println("update")
+	if len(mw.model.items) <= 0 {
+		return
+	}
+
+	mw.model.update()
 	mw.lb.SetModel(mw.model)
 }
 

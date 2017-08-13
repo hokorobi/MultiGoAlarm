@@ -179,15 +179,17 @@ func main() {
 
 	mw := &MyMainWindow{model: NewAlarmModel()}
 
-	// 無限ループっぽい
-	// t := time.NewTicker(time.Second)
-	// for {
-	// 	select {
-	// 	case <-t.C:
-	// 		mw.update()
-	// 	}
-	// 	t.Stop()
-	// }
+	go func() {
+		t := time.NewTicker(time.Second)
+		for {
+			select {
+			case <-t.C:
+				// log.Println("tick")
+				mw.update()
+			}
+		}
+		t.Stop()
+	}()
 
 	if _, err := (MainWindow{
 		AssignTo: &mw.MainWindow,
@@ -248,11 +250,11 @@ func (mw *MyMainWindow) clickAdd() {
 }
 
 func (mw *MyMainWindow) update() {
-	log.Println("update")
 	if len(mw.model.items) <= 0 {
 		return
 	}
 
+	// log.Println("update")
 	mw.model.update()
 	mw.lb.SetModel(mw.model)
 }

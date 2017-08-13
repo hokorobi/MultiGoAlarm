@@ -45,6 +45,10 @@ func (items *AlarmItems) add(item AlarmItem) {
 	return
 }
 
+func (items *AlarmItems) del(i int) {
+	items.items = append(items.items[:i], items.items[i+1:]...)
+}
+
 func (items *AlarmItems) write() {
 	f, err := os.Create("timerlist.json")
 	defer f.Close()
@@ -118,9 +122,10 @@ func main() {
 				},
 			},
 			ListBox{
-				AssignTo: &mw.lb,
-				Model:    mw.model,
-				Row:      10,
+				AssignTo:        &mw.lb,
+				Model:           mw.model,
+				OnItemActivated: mw.lb_ItemActivated,
+				Row:             10,
 			},
 		},
 	}.Run()); err != nil {
@@ -134,6 +139,11 @@ func main() {
 	// 	}
 	// 	t.Stop()
 	// }
+}
+
+func (mw *MyMainWindow) lb_ItemActivated() {
+	mw.model.del(mw.lb.CurrentIndex())
+	mw.lb.SetModel(mw.model)
 }
 
 func (mw *MyMainWindow) clickAdd() {

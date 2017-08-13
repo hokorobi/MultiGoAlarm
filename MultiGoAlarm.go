@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"regexp"
@@ -28,6 +29,32 @@ type AlarmItems struct {
 func NewAlarmModel() *AlarmItems {
 	m := &AlarmItems{items: make([]AlarmItem, 0)}
 	return m
+}
+
+func (item *AlarmItem) setValue(start time.Time) {
+	hour := "00"
+	minute := "00"
+	second := "00"
+	var index int
+
+	v := item.end.Sub(start).String()
+	index = strings.Index(v, "h")
+	if index > -1 {
+		hour = v[:index]
+		v = v[index+1:]
+	}
+	index = strings.Index(v, "m")
+	if index > -1 {
+		minute = v[:index]
+		v = v[index+1:]
+	}
+	index = strings.Index(v, ".")
+	if index > -1 {
+		second = v[:index]
+	} else {
+		second = v[:strings.Index(v, "s")]
+	}
+	item.value = fmt.Sprintf("%02s:%02s:%02s %s", hour, minute, second, item.message)
 }
 
 func (item *AlarmItem) getTime(s string) (*time.Time, *time.Time) {
@@ -71,7 +98,7 @@ func (items *AlarmItems) del(i int) {
 
 func (items *AlarmItems) update() {
 	for i := 0; i < len(items.items); i++ {
-		items.items[i].value = items.items[i].end.Sub(time.Now()).String() + " " + items.items[i].message
+		items.items[i].setValue(time.Now())
 	}
 }
 
@@ -122,7 +149,7 @@ func NewAlarmItem(s string) *AlarmItem {
 	item.start = start
 	item.end = end
 	item.message = message
-	item.value = end.Sub(*start).String() + " " + message
+	item.setValue(*start)
 
 	return item
 }

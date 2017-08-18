@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	logfile, err := os.OpenFile("./test.log", os.O_CREATE|os.O_WRONLY, 0666)
+	logfile, err := os.OpenFile("./test.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		panic("cannnot open test.log:" + err.Error())
 	}

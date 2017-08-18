@@ -45,7 +45,7 @@ func (items *AlarmItems) update() []AlarmItem {
 	now := time.Now()
 	for i := 0; i < len(items.items); i++ {
 		// 終了時刻を過ぎている or 同じ
-		if !items.items[i].end.After(now) {
+		if items.items[i].isTimeUp(now) {
 			candidateItems = append(candidateItems, items.items[i])
 			candidateIds = append(candidateIds, items.items[i].id)
 		} else {

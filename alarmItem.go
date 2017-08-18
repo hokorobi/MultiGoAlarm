@@ -96,3 +96,11 @@ func NewAlarmItem(s string) *AlarmItem {
 
 	return item
 }
+
+func (item *AlarmItem) isTimeUp(now time.Time) bool {
+	if item.end.Sub(now).Seconds() < 1.0 {
+		return true
+	} else {
+		return false
+	}
+}

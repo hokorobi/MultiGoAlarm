@@ -37,6 +37,7 @@ func main() {
 				alarmItems = mw.update()
 				for i := range alarmItems {
 					go Alarm(alarmItems[i].message)
+					time.Sleep(100 * time.Millisecond)
 				}
 			}
 		}
@@ -128,12 +129,10 @@ type SubWindow struct {
 func Alarm(s string) {
 	var message string
 
+	sw := &SubWindow{}
+
 	lock.RLock()
 	defer lock.RUnlock()
-	lock.Lock()
-	defer lock.Unlock()
-
-	sw := &SubWindow{}
 
 	if s == "" {
 		message = "It is Time!"

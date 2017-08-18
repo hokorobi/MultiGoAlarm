@@ -128,10 +128,8 @@ type SubWindow struct {
 func Alarm(s string) {
 	var message string
 
-	lock.Lock()
-	defer lock.Unlock()
-	// lock.Lock()
-	// defer lock.Unlock()
+	lock.RLock()
+	defer lock.RUnlock()
 
 	sw := &SubWindow{}
 

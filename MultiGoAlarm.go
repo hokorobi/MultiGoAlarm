@@ -23,7 +23,7 @@ func main() {
 
 	mw := &MyMainWindow{model: NewAlarmModel()}
 
-	var items []AlarmItem
+	var alarmItems []AlarmItem
 
 	go func() {
 		t := time.NewTicker(time.Second)
@@ -31,9 +31,11 @@ func main() {
 			select {
 			case <-t.C:
 				// log.Println("tick")
-				items = mw.update()
-				for i := range items {
-					Alarm(items[i].message)
+				alarmItems = mw.update()
+				for i := range alarmItems {
+					go func(s string) {
+						Alarm(s)
+					}(alarmItems[i].message)
 				}
 			}
 		}

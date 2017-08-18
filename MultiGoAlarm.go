@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -34,9 +33,7 @@ func main() {
 				// log.Println("tick")
 				alarmItems = mw.update()
 				for i := range alarmItems {
-					go func(s string) {
-						fmt.Println(s)
-					}(alarmItems[i].message)
+					go Alarm(alarmItems[i].message)
 				}
 			}
 		}

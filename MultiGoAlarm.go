@@ -32,9 +32,9 @@ func main() {
 			case <-t.C:
 				// log.Println("tick")
 				items = mw.update()
-				// for i := range items {
-				// 	Alarm(items[i].message)
-				// }
+				for i := range items {
+					Alarm(items[i].message)
+				}
 			}
 		}
 		t.Stop()
@@ -122,8 +122,16 @@ type SubWindow struct {
 	*walk.MainWindow
 }
 
-func Alarm(message string) {
+func Alarm(s string) {
+	var message string
+
 	sw := &SubWindow{}
+
+	if s == "" {
+		message = "It is Time!"
+	} else {
+		message = s
+	}
 
 	if _, err := (MainWindow{
 		AssignTo: &sw.MainWindow,

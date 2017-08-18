@@ -130,6 +130,8 @@ func Alarm(s string) {
 
 	lock.RLock()
 	defer lock.RUnlock()
+	lock.Lock()
+	defer lock.Unlock()
 
 	sw := &SubWindow{}
 

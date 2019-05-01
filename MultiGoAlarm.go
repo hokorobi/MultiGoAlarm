@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/lxn/walk"
-	. "github.com/lxn/walk/declarative"
+	"github.com/lxn/walk/declarative"
 )
 
 var lock = sync.RWMutex{}
@@ -20,9 +20,6 @@ func main() {
 	defer logfile.Close()
 	log.SetOutput(logfile)
 	log.SetFlags(log.Ldate | log.Ltime)
-
-	ni := notifyIcon()
-	defer ni.Dispose()
 
 	mw := &MyMainWindow{model: NewAlarmModel()}
 
@@ -41,35 +38,38 @@ func main() {
 				}
 			}
 		}
-		t.Stop()
+		// t.Stop()
 	}()
 
-	if _, err := (MainWindow{
+	// FIXME: notifyIcon() 内でメインウィンドウを作っているので、こいつが終了したら通常のメインウィンドウが出てくる
+	// notifyIcon()
+
+	if _, err := (declarative.MainWindow{
 		AssignTo: &mw.MainWindow,
 		Title:    "MultiGoAlarm",
-		MinSize:  Size{400, 300},
-		Layout:   VBox{},
-		Children: []Widget{
-			Composite{
-				Layout: HBox{},
-				Children: []Widget{
-					LineEdit{
+		MinSize:  declarative.Size{Width: 400, Height: 300},
+		Layout:   declarative.VBox{},
+		Children: []declarative.Widget{
+			declarative.Composite{
+				Layout: declarative.HBox{},
+				Children: []declarative.Widget{
+					declarative.LineEdit{
 						AssignTo: &mw.time,
 					},
-					PushButton{
+					declarative.PushButton{
 						Text:      "&Add",
 						OnClicked: mw.clickAdd,
 					},
-					PushButton{
+					declarative.PushButton{
 						Text:      "&Quit",
 						OnClicked: mw.clickQuit,
 					},
 				},
 			},
-			ListBox{
+			declarative.ListBox{
 				AssignTo:        &mw.lb,
 				Model:           mw.model,
-				OnItemActivated: mw.lb_ItemActivated,
+				OnItemActivated: mw.lbItemActivated,
 				Row:             10,
 			},
 		},
@@ -86,7 +86,7 @@ type MyMainWindow struct {
 	model *AlarmItems
 }
 
-func (mw *MyMainWindow) lb_ItemActivated() {
+func (mw *MyMainWindow) lbItemActivated() {
 	if mw.lb.CurrentIndex() < 0 {
 		return
 	}
@@ -140,13 +140,13 @@ func Alarm(s string) {
 		message = s
 	}
 
-	if _, err := (MainWindow{
+	if _, err := (declarative.MainWindow{
 		AssignTo: &sw.MainWindow,
 		Title:    "Alarm",
-		MinSize:  Size{300, 300},
-		Layout:   VBox{},
-		Children: []Widget{
-			Label{
+		MinSize:  declarative.Size{Width: 300, Height: 300},
+		Layout:   declarative.VBox{},
+		Children: []declarative.Widget{
+			declarative.Label{
 				Text: message,
 			},
 		},
@@ -155,17 +155,23 @@ func Alarm(s string) {
 	}
 }
 
-func notifyIcon() *walk.NotifyIcon {
+func notifyIcon() {
 	// load icon
 	icon, err := walk.NewIconFromFile("MultiGoAlarm.ico")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ni, err := walk.NewNotifyIcon()
+	mw, err := walk.NewMainWindow()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	ni, err := walk.NewNotifyIcon(mw)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer ni.Dispose()
 
 	// Set the icon and a tool tip text.
 	if err := ni.SetIcon(icon); err != nil {
@@ -185,5 +191,5 @@ func notifyIcon() *walk.NotifyIcon {
 	if err := ni.SetVisible(true); err != nil {
 		log.Fatal(err)
 	}
-	return ni
+	mw.Run()
 }

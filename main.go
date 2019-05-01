@@ -7,9 +7,15 @@ import (
 
 	"github.com/lxn/walk"
 	"github.com/lxn/walk/declarative"
+	"github.com/rodolfoag/gow32"
 )
 
 func main() {
+	_, err := gow32.CreateMutex("MultiGoAlarm")
+	if err != nil {
+		// fmt.Printf("Error: %d - %s\n", int(err.(syscall.Errno)), err.Error())
+		os.Exit(0)
+	}
 	logfile, err := os.OpenFile("./test.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		panic("cannnot open test.log:" + err.Error())

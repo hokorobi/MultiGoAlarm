@@ -21,7 +21,13 @@ func main() {
 	log.SetOutput(logfile)
 	log.SetFlags(log.Ldate | log.Ltime)
 
-	mw := &MyMainWindow{model: NewAlarmModel()}
+	var app App
+	app.mw, err = walk.NewMainWindow()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	app.model = NewAlarmModel()
 
 	var alarmItems []AlarmItem
 
@@ -31,7 +37,7 @@ func main() {
 			select {
 			case <-t.C:
 				// log.Println("tick")
-				alarmItems = mw.update()
+				alarmItems = app.update()
 				for i := range alarmItems {
 					go Alarm(alarmItems[i].message)
 					time.Sleep(100 * time.Millisecond)
@@ -41,11 +47,11 @@ func main() {
 		// t.Stop()
 	}()
 
-	// FIXME: notifyIcon() 内でメインウィンドウを作っているので、こいつが終了したら通常のメインウィンドウが出てくる
-	// notifyIcon()
+	ni := notifyIcon(app.mw)
+	defer ni.Dispose()
 
 	if _, err := (declarative.MainWindow{
-		AssignTo: &mw.MainWindow,
+		AssignTo: &app.mw,
 		Title:    "MultiGoAlarm",
 		MinSize:  declarative.Size{Width: 400, Height: 300},
 		Layout:   declarative.VBox{},
@@ -54,22 +60,22 @@ func main() {
 				Layout: declarative.HBox{},
 				Children: []declarative.Widget{
 					declarative.LineEdit{
-						AssignTo: &mw.time,
+						AssignTo: &app.time,
 					},
 					declarative.PushButton{
 						Text:      "&Add",
-						OnClicked: mw.clickAdd,
+						OnClicked: app.clickAdd,
 					},
 					declarative.PushButton{
 						Text:      "&Quit",
-						OnClicked: mw.clickQuit,
+						OnClicked: app.clickQuit,
 					},
 				},
 			},
 			declarative.ListBox{
-				AssignTo:        &mw.lb,
-				Model:           mw.model,
-				OnItemActivated: mw.lbItemActivated,
+				AssignTo:        &app.lb,
+				Model:           app.model,
+				OnItemActivated: app.lbItemActivated,
 				Row:             10,
 			},
 		},
@@ -79,46 +85,46 @@ func main() {
 
 }
 
-type MyMainWindow struct {
-	*walk.MainWindow
+type App struct {
+	mw    *walk.MainWindow
 	time  *walk.LineEdit
 	lb    *walk.ListBox
 	model *AlarmItems
 }
 
-func (mw *MyMainWindow) lbItemActivated() {
-	if mw.lb.CurrentIndex() < 0 {
+func (app *App) lbItemActivated() {
+	if app.lb.CurrentIndex() < 0 {
 		return
 	}
 
-	mw.model.del(mw.lb.CurrentIndex())
-	mw.lb.SetModel(mw.model)
+	app.model.del(app.lb.CurrentIndex())
+	app.lb.SetModel(app.model)
 }
 
-func (mw *MyMainWindow) clickAdd() {
-	item := NewAlarmItem(mw.time.Text())
+func (app *App) clickAdd() {
+	item := NewAlarmItem(app.time.Text())
 	if item == nil {
-		walk.MsgBox(mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
+		walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
 		return
 	}
 	// debug
 	// walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
-	mw.model.add(*item)
-	mw.lb.SetModel(mw.model)
+	app.model.add(*item)
+	app.lb.SetModel(app.model)
 }
 
-func (mw *MyMainWindow) update() []AlarmItem {
-	if len(mw.model.items) <= 0 {
+func (app *App) update() []AlarmItem {
+	if len(app.model.items) <= 0 {
 		return nil
 	}
 
 	// log.Println("update")
-	items := mw.model.update()
-	mw.lb.SetModel(mw.model)
+	items := app.model.update()
+	app.lb.SetModel(app.model)
 	return items
 }
 
-func (mw *MyMainWindow) clickQuit() {
+func (app *App) clickQuit() {
 	os.Exit(0)
 }
 
@@ -155,14 +161,9 @@ func Alarm(s string) {
 	}
 }
 
-func notifyIcon() {
+func notifyIcon(mw *walk.MainWindow) *walk.NotifyIcon {
 	// load icon
 	icon, err := walk.NewIconFromFile("MultiGoAlarm.ico")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	mw, err := walk.NewMainWindow()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -171,7 +172,6 @@ func notifyIcon() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer ni.Dispose()
 
 	// Set the icon and a tool tip text.
 	if err := ni.SetIcon(icon); err != nil {
@@ -191,5 +191,5 @@ func notifyIcon() {
 	if err := ni.SetVisible(true); err != nil {
 		log.Fatal(err)
 	}
-	mw.Run()
+	return ni
 }

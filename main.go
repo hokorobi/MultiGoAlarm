@@ -39,7 +39,7 @@ func main() {
 				// log.Println("tick")
 				alarmItems = app.update()
 				for i := range alarmItems {
-					go Alarm(alarmItems[i].message)
+					go AlarmWindow(alarmItems[i].message)
 					time.Sleep(100 * time.Millisecond)
 				}
 			}
@@ -132,7 +132,7 @@ type SubWindow struct {
 	*walk.MainWindow
 }
 
-func Alarm(s string) {
+func AlarmWindow(s string) {
 	var message string
 
 	sw := &SubWindow{}

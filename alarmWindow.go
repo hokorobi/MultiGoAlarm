@@ -12,9 +12,6 @@ func AlarmWindow(s string) {
 
 	var mw *walk.MainWindow
 
-	lock.RLock()
-	defer lock.RUnlock()
-
 	if s == "" {
 		message = "It is Time!"
 	} else {

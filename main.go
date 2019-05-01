@@ -3,14 +3,11 @@ package main
 import (
 	"log"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/lxn/walk"
 	"github.com/lxn/walk/declarative"
 )
-
-var lock = sync.RWMutex{}
 
 func main() {
 	logfile, err := os.OpenFile("./test.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)

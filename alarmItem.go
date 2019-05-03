@@ -9,11 +9,11 @@ import (
 )
 
 type AlarmItem struct {
-	start   *time.Time
-	end     *time.Time
-	message string
-	value   string
-	id      string
+	Start   *time.Time `json:"start"`
+	End     *time.Time `json:"end"`
+	Message string     `json:"message"`
+	Value   string     `json:"value"`
+	ID      string     `json:"id"`
 }
 
 func (item *AlarmItem) setValue(start time.Time) {
@@ -22,7 +22,7 @@ func (item *AlarmItem) setValue(start time.Time) {
 	second := "00"
 	var index int
 
-	v := item.end.Sub(start).String()
+	v := item.End.Sub(start).String()
 	index = strings.Index(v, "h")
 	if index > -1 {
 		hour = v[:index]
@@ -39,7 +39,7 @@ func (item *AlarmItem) setValue(start time.Time) {
 	} else {
 		second = v[:strings.Index(v, "s")]
 	}
-	item.value = fmt.Sprintf("%02s:%02s:%02s %s", hour, minute, second, item.message)
+	item.Value = fmt.Sprintf("%02s:%02s:%02s %s", hour, minute, second, item.Message)
 }
 
 func (item *AlarmItem) getTime(s string) (*time.Time, *time.Time) {
@@ -88,19 +88,18 @@ func NewAlarmItem(s string) *AlarmItem {
 	if start == nil {
 		return nil
 	}
-	item.start = start
-	item.end = end
-	item.message = message
+	item.Start = start
+	item.End = end
+	item.Message = message
 	item.setValue(*start)
-	item.id = fmt.Sprint(start.Unix())
+	item.ID = fmt.Sprint(start.Unix())
 
 	return item
 }
 
 func (item *AlarmItem) isTimeUp(now time.Time) bool {
-	if item.end.Sub(now).Seconds() < 1.0 {
+	if item.End.Sub(now).Seconds() < 1.0 {
 		return true
-	} else {
-		return false
 	}
+	return false
 }

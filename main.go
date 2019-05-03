@@ -42,7 +42,7 @@ func main() {
 				// log.Println("tick")
 				alarmItems = app.update()
 				for i := range alarmItems {
-					go AlarmWindow(alarmItems[i].message)
+					go AlarmWindow(alarmItems[i].Message)
 					time.Sleep(100 * time.Millisecond)
 				}
 			}
@@ -103,7 +103,6 @@ func (app *App) lbItemActivated() {
 	app.model.del(app.lb.CurrentIndex())
 	app.lb.SetModel(app.model)
 }
-
 func (app *App) clickAdd() {
 	item := NewAlarmItem(app.time.Text())
 	if item == nil {
@@ -115,7 +114,6 @@ func (app *App) clickAdd() {
 	app.model.add(*item)
 	app.lb.SetModel(app.model)
 }
-
 func (app *App) update() []AlarmItem {
 	if len(app.model.items) <= 0 {
 		return nil
@@ -126,7 +124,6 @@ func (app *App) update() []AlarmItem {
 	app.lb.SetModel(app.model)
 	return items
 }
-
 func (app *App) clickQuit() {
 	os.Exit(0)
 }

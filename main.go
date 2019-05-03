@@ -30,7 +30,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	app.model = NewAlarmModel()
+	app.list = NewAlarmList()
 
 	var alarmItems []AlarmItem
 
@@ -77,7 +77,7 @@ func main() {
 			},
 			declarative.ListBox{
 				AssignTo:        &app.lb,
-				Model:           app.model,
+				Model:           app.list,
 				OnItemActivated: app.lbItemActivated,
 				Row:             10,
 			},
@@ -89,10 +89,10 @@ func main() {
 }
 
 type App struct {
-	mw    *walk.MainWindow
-	time  *walk.LineEdit
-	lb    *walk.ListBox
-	model *AlarmItems
+	mw   *walk.MainWindow
+	time *walk.LineEdit
+	lb   *walk.ListBox
+	list *AlarmList
 }
 
 func (app *App) lbItemActivated() {
@@ -100,8 +100,8 @@ func (app *App) lbItemActivated() {
 		return
 	}
 
-	app.model.del(app.lb.CurrentIndex())
-	app.lb.SetModel(app.model)
+	app.list.del(app.lb.CurrentIndex())
+	app.lb.SetModel(app.list)
 }
 func (app *App) clickAdd() {
 	item := NewAlarmItem(app.time.Text())
@@ -111,17 +111,17 @@ func (app *App) clickAdd() {
 	}
 	// debug
 	// walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
-	app.model.add(*item)
-	app.lb.SetModel(app.model)
+	app.list.add(*item)
+	app.lb.SetModel(app.list)
 }
 func (app *App) update() []AlarmItem {
-	if len(app.model.items) <= 0 {
+	if len(app.list.list) <= 0 {
 		return nil
 	}
 
 	// log.Println("update")
-	items := app.model.update()
-	app.lb.SetModel(app.model)
+	items := app.list.update()
+	app.lb.SetModel(app.list)
 	return items
 }
 func (app *App) clickQuit() {

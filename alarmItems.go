@@ -11,66 +11,66 @@ import (
 	"github.com/lxn/walk"
 )
 
-type AlarmItems struct {
+type AlarmList struct {
 	filename string
 	walk.ListModelBase
-	items []AlarmItem
+	list []AlarmItem
 }
 
 type AlarmItemsJ struct {
-	Items []AlarmItem `json:"items"`
+	List []AlarmItem `json:"list"`
 }
 
-func NewAlarmModel() *AlarmItems {
-	m := &AlarmItems{items: make([]AlarmItem, 0)}
+func NewAlarmList() *AlarmList {
+	m := &AlarmList{list: make([]AlarmItem, 0)}
 	m.filename = m.getAlarmsFilename()
 	return m
 }
 
-func (items *AlarmItems) add(item AlarmItem) {
-	items.items = append(items.items, item)
-	items.write()
+func (list *AlarmList) add(item AlarmItem) {
+	list.list = append(list.list, item)
+	list.write()
 }
 
-func (items *AlarmItems) del(i int) {
-	items.items = append(items.items[:i], items.items[i+1:]...)
-	items.write()
+func (list *AlarmList) del(i int) {
+	list.list = append(list.list[:i], list.list[i+1:]...)
+	list.write()
 }
 
-func (items *AlarmItems) delID(id string) {
-	for i := range items.items {
-		if items.items[i].ID == id {
-			items.del(i)
+func (list *AlarmList) delID(id string) {
+	for i := range list.list {
+		if list.list[i].ID == id {
+			list.del(i)
 			return
 		}
 	}
 }
 
-func (items *AlarmItems) update() []AlarmItem {
+func (list *AlarmList) update() []AlarmItem {
 	var candidateItems []AlarmItem
 	var candidateIds []string
 
 	now := time.Now()
-	for i := 0; i < len(items.items); i++ {
+	for i := 0; i < len(list.list); i++ {
 		// 終了時刻を過ぎている or 同じ
-		if items.items[i].isTimeUp(now) {
-			candidateItems = append(candidateItems, items.items[i])
-			candidateIds = append(candidateIds, items.items[i].ID)
+		if list.list[i].isTimeUp(now) {
+			candidateItems = append(candidateItems, list.list[i])
+			candidateIds = append(candidateIds, list.list[i].ID)
 		} else {
-			items.items[i].setValue(now)
+			list.list[i].setValue(now)
 		}
 	}
 	for i := range candidateIds {
-		items.delID(candidateIds[i])
+		list.delID(candidateIds[i])
 	}
 
 	return candidateItems
 }
 
-func (items *AlarmItems) load() {
+func (list *AlarmList) load() {
 	var d AlarmItemsJ
 
-	f, err := os.Open(items.filename)
+	f, err := os.Open(list.filename)
 	if err != nil {
 		log.Println(err)
 		return
@@ -84,29 +84,29 @@ func (items *AlarmItems) load() {
 		return
 	}
 
-	items.items = d.Items
+	list.list = d.List
 }
 
-func (items *AlarmItems) write() {
+func (list *AlarmList) write() {
 	var d AlarmItemsJ
-	d.Items = items.items
+	d.List = list.list
 	b, err := json.MarshalIndent(&d, "", "  ")
 	if err != nil {
 		log.Println(err)
 	}
 
-	ioutil.WriteFile(items.filename, b, os.ModePerm)
+	ioutil.WriteFile(list.filename, b, os.ModePerm)
 }
 
-func (items *AlarmItems) getAlarmsFilename() string {
+func (list *AlarmList) getAlarmsFilename() string {
 	exec, _ := os.Executable()
 	return filepath.Join(filepath.Dir(exec), filepath.Base(exec)+".json")
 }
 
-func (items *AlarmItems) ItemCount() int {
-	return len(items.items)
+func (list *AlarmList) ItemCount() int {
+	return len(list.list)
 }
 
-func (items *AlarmItems) Value(index int) interface{} {
-	return items.items[index].Value
+func (list *AlarmList) Value(index int) interface{} {
+	return list.list[index].Value
 }

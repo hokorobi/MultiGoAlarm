@@ -1,29 +1,20 @@
 package main
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"log"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/lxn/walk"
 )
 
 type AlarmList struct {
-	filename string
+	file AlarmListFile
 	walk.ListModelBase
 	list []AlarmItem
 }
 
-type AlarmItemsJ struct {
-	List []AlarmItem `json:"list"`
-}
-
 func NewAlarmList() *AlarmList {
 	m := &AlarmList{list: make([]AlarmItem, 0)}
-	m.filename = m.getAlarmsFilename()
+	m.file = NewAlarmListFile()
 	return m
 }
 
@@ -68,39 +59,11 @@ func (list *AlarmList) update() []AlarmItem {
 }
 
 func (list *AlarmList) load() {
-	var d AlarmItemsJ
-
-	f, err := os.Open(list.filename)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	defer f.Close()
-
-	dec := json.NewDecoder(f)
-	err = dec.Decode(&d)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	list.list = d.List
+	list.file.load(list)
 }
 
 func (list *AlarmList) write() {
-	var d AlarmItemsJ
-	d.List = list.list
-	b, err := json.MarshalIndent(&d, "", "  ")
-	if err != nil {
-		log.Println(err)
-	}
-
-	ioutil.WriteFile(list.filename, b, os.ModePerm)
-}
-
-func (list *AlarmList) getAlarmsFilename() string {
-	exec, _ := os.Executable()
-	return filepath.Join(filepath.Dir(exec), filepath.Base(exec)+".json")
+	list.file.write(list)
 }
 
 func (list *AlarmList) ItemCount() int {

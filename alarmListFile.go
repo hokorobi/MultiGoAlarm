@@ -14,14 +14,16 @@ type AlarmListFile struct {
 	mtime time.Time
 }
 
-type AlarmItemsJ struct {
+type AlarmListJ struct {
 	List []AlarmItem `json:"list"`
 }
 
 func NewAlarmListFile() AlarmListFile {
-	var f AlarmListFile
-	f.name = f.getFilename()
-	return f
+	var file AlarmListFile
+	file.name = file.getFilename()
+	file.mtime = file.getMtime()
+
+	return file
 }
 
 func (file *AlarmListFile) getFilename() string {
@@ -30,7 +32,7 @@ func (file *AlarmListFile) getFilename() string {
 }
 
 func (file *AlarmListFile) write(list *AlarmList) {
-	var d AlarmItemsJ
+	var d AlarmListJ
 	d.List = list.list
 	b, err := json.MarshalIndent(&d, "", "  ")
 	if err != nil {
@@ -41,7 +43,9 @@ func (file *AlarmListFile) write(list *AlarmList) {
 }
 
 func (file *AlarmListFile) load(list *AlarmList) {
-	var d AlarmItemsJ
+	if file.mtime == file.getMtime() {
+		return
+	}
 
 	f, err := os.Open(file.name)
 	if err != nil {
@@ -51,6 +55,7 @@ func (file *AlarmListFile) load(list *AlarmList) {
 	defer f.Close()
 
 	dec := json.NewDecoder(f)
+	var d AlarmListJ
 	err = dec.Decode(&d)
 	if err != nil {
 		log.Println(err)
@@ -58,4 +63,29 @@ func (file *AlarmListFile) load(list *AlarmList) {
 	}
 
 	list.list = d.List
+}
+
+func (file *AlarmListFile) getMtime() time.Time {
+	f1, err1 := os.Stat(file.name)
+	if err1 == nil {
+		return f1.ModTime()
+	}
+	// ファイルが存在しなかったら作成して変更時間を返す
+	if !os.IsNotExist(err1) {
+		log.Fatal(err1)
+	}
+	file.touch()
+	f2, err2 := os.Stat(file.name)
+	if err2 != nil {
+		log.Fatal(err2)
+	}
+	return f2.ModTime()
+}
+
+func (file *AlarmListFile) touch() {
+	f, err := os.Create(file.name)
+	if err != nil {
+		log.Fatal(err)
+	}
+	f.Close()
 }

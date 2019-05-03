@@ -6,8 +6,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/rs/xid"
 )
 
+// AlarmItem はアラームのクラス
 type AlarmItem struct {
 	Start   *time.Time `json:"start"`
 	End     *time.Time `json:"end"`
@@ -71,6 +74,7 @@ func (item *AlarmItem) getTime(s string) (*time.Time, *time.Time) {
 	return nil, nil
 }
 
+// NewAlarmItem は AlarmItem を生成する関数
 func NewAlarmItem(s string) *AlarmItem {
 	var message string
 	var timeString string
@@ -92,7 +96,7 @@ func NewAlarmItem(s string) *AlarmItem {
 	item.End = end
 	item.Message = message
 	item.setValue(*start)
-	item.ID = fmt.Sprint(start.Unix())
+	item.ID = xid.New().String()
 
 	return item
 }

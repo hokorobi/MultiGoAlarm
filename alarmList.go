@@ -12,13 +12,17 @@ type AlarmList struct {
 	list []AlarmItem
 }
 
+// NewAlarmList は AlarmList を生成する関数
 func NewAlarmList() *AlarmList {
 	m := &AlarmList{list: make([]AlarmItem, 0)}
 	m.file = NewAlarmListFile()
+	m.load()
+	m.deleteTimeout()
 	return m
 }
 
 func (list *AlarmList) add(item AlarmItem) {
+	list.load()
 	list.list = append(list.list, item)
 	list.write()
 }
@@ -72,4 +76,17 @@ func (list *AlarmList) ItemCount() int {
 
 func (list *AlarmList) Value(index int) interface{} {
 	return list.list[index].Value
+}
+
+func (list *AlarmList) deleteTimeout() {
+	var isDelete bool
+	for _, e := range list.list {
+		if e.End.Before(time.Now()) {
+			list.delID(e.ID)
+			isDelete = true
+		}
+	}
+	if isDelete {
+		list.write()
+	}
 }

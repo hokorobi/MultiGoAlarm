@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/lxn/walk"
@@ -13,26 +14,20 @@ import (
 func main() {
 	_, err := gow32.CreateMutex("MultiGoAlarm")
 	if err != nil {
+		// TODO: 引数があったらアラームとして追加
 		// fmt.Printf("Error: %d - %s\n", int(err.(syscall.Errno)), err.Error())
 		os.Exit(0)
 	}
-	logfile, err := os.OpenFile("./test.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+
+	logfile, err := os.OpenFile(getLogFilename(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
-		panic("cannnot open test.log:" + err.Error())
+		panic("cannnot open logfile:" + err.Error())
 	}
 	defer logfile.Close()
 	log.SetOutput(logfile)
 	log.SetFlags(log.Ldate | log.Ltime)
 
-	var app App
-	app.mw, err = walk.NewMainWindow()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	app.list = NewAlarmList()
-
-	var alarmItems []AlarmItem
+	app := newApp()
 
 	go func() {
 		t := time.NewTicker(time.Second)
@@ -40,11 +35,7 @@ func main() {
 			select {
 			case <-t.C:
 				// log.Println("tick")
-				alarmItems = app.update()
-				for i := range alarmItems {
-					go AlarmWindow(alarmItems[i].Message)
-					time.Sleep(100 * time.Millisecond)
-				}
+				app.update()
 			}
 		}
 		// t.Stop()
@@ -88,14 +79,31 @@ func main() {
 
 }
 
-type App struct {
+func getLogFilename() string {
+	exec, _ := os.Executable()
+	return filepath.Join(filepath.Dir(exec), filepath.Base(exec)+".log")
+}
+
+// App はこのアプリ全体の型
+type app struct {
 	mw   *walk.MainWindow
 	time *walk.LineEdit
 	lb   *walk.ListBox
 	list *AlarmList
 }
 
-func (app *App) lbItemActivated() {
+func newApp() app {
+	var app app
+	var err error
+	app.mw, err = walk.NewMainWindow()
+	if err != nil {
+		log.Fatal(err)
+	}
+	app.list = NewAlarmList()
+	return app
+}
+
+func (app *app) lbItemActivated() {
 	if app.lb.CurrentIndex() < 0 {
 		return
 	}
@@ -103,7 +111,7 @@ func (app *App) lbItemActivated() {
 	app.list.del(app.lb.CurrentIndex())
 	app.lb.SetModel(app.list)
 }
-func (app *App) clickAdd() {
+func (app *app) clickAdd() {
 	item := NewAlarmItem(app.time.Text())
 	if item == nil {
 		walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
@@ -114,16 +122,22 @@ func (app *App) clickAdd() {
 	app.list.add(*item)
 	app.lb.SetModel(app.list)
 }
-func (app *App) update() []AlarmItem {
-	if len(app.list.list) <= 0 {
-		return nil
+func (app *app) update() {
+	if len(app.list.list) < 1 {
+		return
 	}
 
 	// log.Println("update")
 	items := app.list.update()
 	app.lb.SetModel(app.list)
-	return items
+	app.alarm(items)
 }
-func (app *App) clickQuit() {
+func (app *app) clickQuit() {
 	os.Exit(0)
+}
+func (app *app) alarm(items []AlarmItem) {
+	for i := range items {
+		go AlarmWindow(items[i].Message)
+		time.Sleep(100 * time.Millisecond)
+	}
 }

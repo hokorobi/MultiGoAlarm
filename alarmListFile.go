@@ -9,19 +9,20 @@ import (
 	"time"
 )
 
+// AlarmListFile はアラームのリスト用のファイルを操作する型
 type AlarmListFile struct {
 	name  string
 	mtime time.Time
 }
 
-type AlarmListJ struct {
+type alarmListForJSON struct {
 	List []AlarmItem `json:"list"`
 }
 
+// NewAlarmListFile は AlarmListFile を新規作成する関数
 func NewAlarmListFile() AlarmListFile {
 	var file AlarmListFile
 	file.name = file.getFilename()
-	file.mtime = file.getMtime()
 
 	return file
 }
@@ -32,7 +33,7 @@ func (file *AlarmListFile) getFilename() string {
 }
 
 func (file *AlarmListFile) write(list *AlarmList) {
-	var d AlarmListJ
+	var d alarmListForJSON
 	d.List = list.list
 	b, err := json.MarshalIndent(&d, "", "  ")
 	if err != nil {
@@ -40,10 +41,11 @@ func (file *AlarmListFile) write(list *AlarmList) {
 	}
 
 	ioutil.WriteFile(file.name, b, os.ModePerm)
+	file.mtime = file.getMtime()
 }
 
 func (file *AlarmListFile) load(list *AlarmList) {
-	if file.mtime == file.getMtime() {
+	if !file.mtime.IsZero() && file.mtime == file.getMtime() {
 		return
 	}
 
@@ -55,13 +57,14 @@ func (file *AlarmListFile) load(list *AlarmList) {
 	defer f.Close()
 
 	dec := json.NewDecoder(f)
-	var d AlarmListJ
+	var d alarmListForJSON
 	err = dec.Decode(&d)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
+	file.mtime = file.getMtime()
 	list.list = d.List
 }
 
@@ -74,18 +77,10 @@ func (file *AlarmListFile) getMtime() time.Time {
 	if !os.IsNotExist(err1) {
 		log.Fatal(err1)
 	}
-	file.touch()
+	file.write(&AlarmList{list: make([]AlarmItem, 0)})
 	f2, err2 := os.Stat(file.name)
 	if err2 != nil {
 		log.Fatal(err2)
 	}
 	return f2.ModTime()
-}
-
-func (file *AlarmListFile) touch() {
-	f, err := os.Create(file.name)
-	if err != nil {
-		log.Fatal(err)
-	}
-	f.Close()
 }

@@ -11,6 +11,10 @@ import (
 	"github.com/rodolfoag/gow32"
 )
 
+type additionalAlarmText struct {
+	Text string
+}
+
 func main() {
 	_, err := gow32.CreateMutex("MultiGoAlarm")
 	if err != nil {
@@ -59,7 +63,7 @@ func main() {
 					},
 					declarative.PushButton{
 						Text:      "&Add",
-						OnClicked: app.clickAdd,
+						OnClicked: app.clickAddDlg,
 					},
 					declarative.PushButton{
 						Text:      "&Quit",
@@ -88,7 +92,6 @@ func getLogFilename() string {
 // App はこのアプリ全体の型
 type app struct {
 	mw   *walk.MainWindow
-	time *walk.LineEdit
 	lb   *walk.ListBox
 	list *AlarmList
 }
@@ -112,16 +115,24 @@ func (app *app) lbItemActivated() {
 	app.list.del(app.lb.CurrentIndex())
 	app.lb.SetModel(app.list)
 }
-func (app *app) clickAdd() {
-	item := NewAlarmItem(app.time.Text())
-	if item == nil {
+func (app *app) clickAddDlg() {
+	newText := new(additionalAlarmText)
+	cmd, err := additionalDialog(app.mw, newText)
+	if err != nil {
 		walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
 		return
 	}
-	// debug
-	// walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
-	app.list.add(*item)
-	app.lb.SetModel(app.list)
+	if cmd == walk.DlgCmdOK {
+		item := NewAlarmItem(newText.Text)
+		if item == nil {
+			walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
+			return
+		}
+		// debug
+		// walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
+		app.list.add(*item)
+		app.lb.SetModel(app.list)
+	}
 }
 func (app *app) update() {
 	if len(app.list.list) < 1 {

@@ -21,6 +21,7 @@ func AlarmWindow(s string) {
 
 	winsize := declarative.Size{Width: 300, Height: 300}
 	// TODO: ウィンドウを動かして目立たせる
+	// FIXME: too big button
 	if _, err := (declarative.MainWindow{
 		AssignTo: &mw,
 		Title:    "Alarm",
@@ -31,7 +32,7 @@ func AlarmWindow(s string) {
 		Children: []declarative.Widget{
 			declarative.LinkLabel{
 				Text:    message,
-				MaxSize: winsize,
+				MaxSize: declarative.Size{Width: 300, Height: 0},
 			},
 			declarative.PushButton{
 				Text:      "&Close",

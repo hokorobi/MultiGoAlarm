@@ -7,6 +7,7 @@ import (
 	"github.com/lxn/walk/declarative"
 )
 
+// AlarmWindow はアラームウィンドウを表示する関数
 func AlarmWindow(s string) {
 	var message string
 
@@ -18,6 +19,8 @@ func AlarmWindow(s string) {
 		message = s
 	}
 
+	// TODO: ウィンドウを動かして目立たせる
+	// TODO: メッセージのセンタリング、サイズなど調整
 	if _, err := (declarative.MainWindow{
 		AssignTo: &mw,
 		Title:    "Alarm",

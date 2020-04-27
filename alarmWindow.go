@@ -31,6 +31,10 @@ func AlarmWindow(s string) {
 			declarative.Label{
 				Text: message,
 			},
+			declarative.PushButton{
+				Text:      "&Close",
+				OnClicked: func() { mw.Close() },
+			},
 		},
 	}.Run()); err != nil {
 		log.Fatal(err)

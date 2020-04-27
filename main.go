@@ -12,10 +12,6 @@ import (
 	"github.com/rodolfoag/gow32"
 )
 
-type additionalAlarmText struct {
-	Text string
-}
-
 func main() {
 	_, err := gow32.CreateMutex("MultiGoAlarm")
 	if err != nil {
@@ -84,6 +80,10 @@ type app struct {
 	mw   *walk.MainWindow
 	lb   *walk.ListBox
 	list *AlarmList
+}
+
+type additionalAlarmText struct {
+	Text string
 }
 
 func newApp() app {

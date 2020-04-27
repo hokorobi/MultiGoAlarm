@@ -63,7 +63,7 @@ func main() {
 					},
 					declarative.PushButton{
 						Text:      "&Quit",
-						OnClicked: app.clickQuit,
+						OnClicked: func() { app.mw.Close() },
 					},
 				},
 			},
@@ -132,9 +132,6 @@ func (app *app) update() {
 	items := app.list.update()
 	app.lb.SetModel(app.list)
 	app.alarm(items)
-}
-func (app *app) clickQuit() {
-	os.Exit(0)
 }
 func (app *app) alarm(items []AlarmItem) {
 	for i := range items {

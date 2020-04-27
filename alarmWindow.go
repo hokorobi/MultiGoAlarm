@@ -19,18 +19,19 @@ func AlarmWindow(s string) {
 		message = s
 	}
 
+	winsize := declarative.Size{Width: 300, Height: 300}
 	// TODO: ウィンドウを動かして目立たせる
-	// TODO: テキストの折り返し
 	if _, err := (declarative.MainWindow{
 		AssignTo: &mw,
 		Title:    "Alarm",
-		MinSize:  declarative.Size{Width: 300, Height: 300},
-		MaxSize:  declarative.Size{Width: 300, Height: 300},
-		Size:     declarative.Size{Width: 300, Height: 300},
+		MinSize:  winsize,
+		MaxSize:  winsize,
+		Size:     winsize,
 		Layout:   declarative.VBox{},
 		Children: []declarative.Widget{
 			declarative.LinkLabel{
-				Text: message,
+				Text:    message,
+				MaxSize: winsize,
 			},
 			declarative.PushButton{
 				Text:      "&Close",

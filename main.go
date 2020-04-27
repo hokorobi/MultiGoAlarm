@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -22,14 +23,6 @@ func main() {
 		// fmt.Printf("Error: %d - %s\n", int(err.(syscall.Errno)), err.Error())
 		os.Exit(0)
 	}
-
-	logfile, err := os.OpenFile(getLogFilename(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-	if err != nil {
-		panic("cannnot open logfile:" + err.Error())
-	}
-	defer logfile.Close()
-	log.SetOutput(logfile)
-	log.SetFlags(log.Ldate | log.Ltime)
 
 	app := newApp()
 
@@ -76,9 +69,9 @@ func main() {
 			},
 		},
 	}.Run()); err != nil {
-		log.Fatal(err)
+		Logg(err)
+		os.Exit(1)
 	}
-
 }
 
 func getLogFilename() string {
@@ -98,7 +91,8 @@ func newApp() app {
 	var err error
 	app.mw, err = walk.NewMainWindow()
 	if err != nil {
-		log.Fatal(err)
+		Logg(err)
+		os.Exit(1)
 	}
 	app.list = NewAlarmList()
 	return app
@@ -136,7 +130,6 @@ func (app *app) update() {
 		return
 	}
 
-	// log.Println("update")
 	items := app.list.update()
 	app.lb.SetModel(app.list)
 	app.alarm(items)
@@ -146,4 +139,20 @@ func (app *app) alarm(items []AlarmItem) {
 		go AlarmWindow(items[i].Message)
 		time.Sleep(100 * time.Millisecond)
 	}
+}
+
+func getLogfile() string {
+	exec, _ := os.Executable()
+	return filepath.Join(filepath.Dir(exec), filepath.Base(exec)+".log")
+}
+func Logg(m interface{}) {
+	f, err := os.OpenFile(getLogfile(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		panic("Cannot open log file:" + err.Error())
+	}
+	defer f.Close()
+
+	log.SetOutput(io.MultiWriter(f, os.Stdout))
+	log.SetFlags(log.Ldate | log.Ltime)
+	log.Println(m)
 }

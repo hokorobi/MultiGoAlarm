@@ -48,6 +48,7 @@ func main() {
 		AssignTo: &app.mw,
 		Title:    "MultiGoAlarm",
 		MinSize:  declarative.Size{Width: 400, Height: 300},
+		Size:     declarative.Size{Width: 400, Height: 300},
 		Layout:   declarative.VBox{},
 		Children: []declarative.Widget{
 			declarative.Composite{

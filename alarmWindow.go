@@ -25,6 +25,7 @@ func AlarmWindow(s string) {
 		AssignTo: &mw,
 		Title:    "Alarm",
 		MinSize:  declarative.Size{Width: 300, Height: 300},
+		Size:     declarative.Size{Width: 300, Height: 300},
 		Layout:   declarative.VBox{},
 		Children: []declarative.Widget{
 			declarative.Label{

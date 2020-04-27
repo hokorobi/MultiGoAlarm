@@ -55,12 +55,15 @@ func main() {
 		Size:     declarative.Size{Width: 400, Height: 300},
 		Layout:   declarative.VBox{},
 		Children: []declarative.Widget{
+			declarative.ListBox{
+				AssignTo:        &app.lb,
+				Model:           app.list,
+				OnItemActivated: app.lbItemActivated,
+				Row:             10,
+			},
 			declarative.Composite{
 				Layout: declarative.HBox{},
 				Children: []declarative.Widget{
-					declarative.LineEdit{
-						AssignTo: &app.time,
-					},
 					declarative.PushButton{
 						Text:      "&Add",
 						OnClicked: app.clickAddDlg,
@@ -70,12 +73,6 @@ func main() {
 						OnClicked: func() { app.mw.Close() },
 					},
 				},
-			},
-			declarative.ListBox{
-				AssignTo:        &app.lb,
-				Model:           app.list,
-				OnItemActivated: app.lbItemActivated,
-				Row:             10,
 			},
 		},
 	}.Run()); err != nil {

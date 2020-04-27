@@ -24,7 +24,7 @@ func additionalDialog(owner walk.Form, s *additionalAlarmText) (int, error) {
 			DataSource:     s,
 			ErrorPresenter: declarative.ToolTipErrorPresenter{},
 		},
-		MinSize: declarative.Size{Height: 300, Width: 300},
+		MinSize: declarative.Size{Height: 50, Width: 300},
 		Layout:  declarative.VBox{},
 		Children: []declarative.Widget{
 			declarative.LineEdit{
@@ -33,7 +33,6 @@ func additionalDialog(owner walk.Form, s *additionalAlarmText) (int, error) {
 			declarative.Composite{
 				Layout: declarative.HBox{},
 				Children: []declarative.Widget{
-					declarative.HSpacer{},
 					declarative.PushButton{
 						AssignTo: &acceptPB,
 						Text:     "OK",

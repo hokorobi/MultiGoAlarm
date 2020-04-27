@@ -34,6 +34,7 @@ func AlarmWindow(s string) {
 				Text:    message,
 				MaxSize: declarative.Size{Width: 300, Height: 0},
 			},
+			declarative.VSpacer{},
 			declarative.PushButton{
 				Text:      "&Close",
 				OnClicked: func() { mw.Close() },

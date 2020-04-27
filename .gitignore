@@ -1,0 +1,8 @@
+.hg
+vendor
+tags
+
+*.exe
+*.log
+*.json
+

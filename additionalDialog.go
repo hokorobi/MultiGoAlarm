@@ -7,12 +7,13 @@ import (
 	"github.com/lxn/walk/declarative"
 )
 
-// AlarmWindow はアラームウィンドウを表示する関数
+// additionalDialog はアラームウィンドウを表示する関数
 func additionalDialog(owner walk.Form, s *additionalAlarmText) (int, error) {
 	var dlg *walk.Dialog
 	var db *walk.DataBinder
 	var acceptPB, cancelPB *walk.PushButton
 
+	// TODO: smaller button
 	return declarative.Dialog{
 		AssignTo:      &dlg,
 		Title:         "Add alarm. format: time [message]",

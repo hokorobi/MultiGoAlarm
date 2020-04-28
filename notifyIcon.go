@@ -1,12 +1,14 @@
 package main
 
 import (
+	"os"
+
 	"github.com/lxn/walk"
 )
 
 func NotifyIcon(mw *walk.MainWindow) *walk.NotifyIcon {
 	// load icon
-	icon, err := walk.NewIconFromFile("MultiGoAlarm.ico")
+	icon, err := walk.NewIconFromFile("alarm-check.ico")
 	if err != nil {
 		Logf(err)
 	}
@@ -26,7 +28,11 @@ func NotifyIcon(mw *walk.MainWindow) *walk.NotifyIcon {
 	if err := exitAction.SetText("E&xit"); err != nil {
 		Logf(err)
 	}
-	exitAction.Triggered().Attach(func() { walk.App().Exit(0) })
+	exitAction.Triggered().Attach(func() {
+		ni.Dispose()
+		// TODO: Improve exit
+		os.Exit(0)
+	})
 	if err := ni.ContextMenu().Actions().Add(exitAction); err != nil {
 		Logf(err)
 	}

@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/go-toast/toast"
 	"github.com/lxn/walk"
 	"github.com/lxn/walk/declarative"
 	"github.com/rodolfoag/gow32"
@@ -35,14 +34,10 @@ func main() {
 		// t.Stop()
 	}()
 
-	// ni := NotifyIcon(app.mw)
-	// defer ni.Dispose()
+	app.ni = NotifyIcon(app.mw)
+	defer app.ni.Dispose()
 
-	// FIXME: Make a clear icon
-	icon, err := walk.Resources.Icon("alarm-check.ico")
-	if err != nil {
-		Logg(err)
-	}
+	ListWindow(app)
 
 	Logg("Run.")
 	defer Logg("Stop.")
@@ -50,31 +45,7 @@ func main() {
 	if _, err := (declarative.MainWindow{
 		AssignTo: &app.mw,
 		Title:    "MultiGoAlarm",
-		MinSize:  declarative.Size{Width: 400, Height: 300},
-		Size:     declarative.Size{Width: 400, Height: 300},
-		Icon:     icon,
-		Layout:   declarative.VBox{},
-		Children: []declarative.Widget{
-			declarative.ListBox{
-				AssignTo:        &app.lb,
-				Model:           app.list,
-				OnItemActivated: app.lbItemActivated,
-				Row:             10,
-			},
-			declarative.Composite{
-				Layout: declarative.HBox{},
-				Children: []declarative.Widget{
-					declarative.PushButton{
-						Text:      "&Add",
-						OnClicked: app.clickAddDlg,
-					},
-					declarative.PushButton{
-						Text:      "&Quit",
-						OnClicked: func() { app.mw.Close() },
-					},
-				},
-			},
-		},
+		Visible:  false,
 	}.Run()); err != nil {
 		Logf(err)
 	}
@@ -83,12 +54,8 @@ func main() {
 // App はこのアプリ全体の型
 type app struct {
 	mw   *walk.MainWindow
-	lb   *walk.ListBox
 	list *AlarmList
-}
-
-type additionalAlarmText struct {
-	Text string
+	ni   *walk.NotifyIcon
 }
 
 func newApp() app {
@@ -102,64 +69,13 @@ func newApp() app {
 	return app
 }
 
-func (app *app) lbItemActivated() {
-	if app.lb.CurrentIndex() < 0 {
-		return
-	}
-
-	app.list.del(app.lb.CurrentIndex())
-	app.lb.SetModel(app.list)
-}
-func (app *app) clickAddDlg() {
-	newText := new(additionalAlarmText)
-	cmd, err := additionalDialog(app.mw, newText)
-	if err != nil {
-		walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
-		return
-	}
-	if cmd == walk.DlgCmdOK {
-		item := NewAlarmItem(newText.Text)
-		if item == nil {
-			walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
-			return
-		}
-		// debug
-		// walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
-		app.list.add(*item)
-
-		iconpath, err2 := filepath.Abs("alarm-check.png")
-		if err2 != nil {
-			Logg(err2)
-		}
-
-		notify := toast.Notification{
-			AppID:   "MultiGoAlarm",
-			Title:   "Add Alarm",
-			Icon:    iconpath,
-			Message: item.End.Format("15:04") + " " + item.Message,
-		}
-		err := notify.Push()
-		if err != nil {
-			Logg(err)
-		}
-
-		app.lb.SetModel(app.list)
-	}
-}
 func (app *app) update() {
 	if len(app.list.list) < 1 {
 		return
 	}
 
-	idx := app.lb.CurrentIndex()
 	items := app.list.update()
-	app.lb.SetModel(app.list)
 	app.alarm(items)
-	err := app.lb.SetCurrentIndex(idx)
-	if err != nil {
-		Logg(err)
-	}
-
 }
 func (app *app) alarm(items []AlarmItem) {
 	for i := range items {

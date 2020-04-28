@@ -3,6 +3,7 @@ module github.com/hokorobi/MultiGoAlarm
 go 1.14
 
 require (
+	github.com/gen2brain/beeep v0.0.0-20200420150314-13046a26d502
 	github.com/lxn/walk v0.0.0-20191128110447-55ccb3a9f5c1
 	github.com/lxn/win v0.0.0-20191128105842-2da648fda5b4 // indirect
 	github.com/rodolfoag/gow32 v0.0.0-20160917004320-d95ff468acf8

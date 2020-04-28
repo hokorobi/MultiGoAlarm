@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/gen2brain/beeep"
 	"github.com/lxn/walk"
 	"github.com/lxn/walk/declarative"
 	"github.com/rodolfoag/gow32"
@@ -120,6 +121,10 @@ func (app *app) clickAddDlg() {
 		// debug
 		// walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
 		app.list.add(*item)
+		err := beeep.Notify("Add", item.Message, "assets/information.png")
+		if err != nil {
+			Logg(err)
+		}
 		app.lb.SetModel(app.list)
 	}
 }

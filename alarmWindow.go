@@ -19,6 +19,7 @@ func AlarmWindow(s string) {
 
 	winsize := declarative.Size{Width: 300, Height: 300}
 	// TODO: ウィンドウを動かして目立たせる
+	// TODO: 最前面にウィンドウを表示
 	// FIXME: too big button
 	// FIXME: too small font
 	if _, err := (declarative.MainWindow{

@@ -22,8 +22,9 @@ func main() {
 
 	app := newApp()
 
+	t := time.NewTicker(time.Second)
+	defer t.Stop()
 	go func() {
-		t := time.NewTicker(time.Second)
 		for {
 			select {
 			case <-t.C:
@@ -31,7 +32,6 @@ func main() {
 				app.update()
 			}
 		}
-		// t.Stop()
 	}()
 
 	app.ni = NotifyIcon(app.mw)

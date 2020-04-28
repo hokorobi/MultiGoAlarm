@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"time"
@@ -14,21 +15,22 @@ func ListWindow(parent app) {
 
 	app := newListWindow(parent.list)
 
-	// ? / golangのよくあるtickerのサンプルがイケてない件 - okzkメモ http://okzk.hatenablog.com/entry/2015/12/01/001924
-	// ? / "Goで一定周期で何かを行う方法 - Qiita" https://qiita.com/ruiu/items/1ea0c72088ad8f2b841e
-	// TODO: goroutine を止める
-	// "Golangで周期的に実行するときのパターン - Qiita" https://qiita.com/tetsu_koba/items/1599408f537cb513b250
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	t := time.NewTicker(time.Second)
 	defer t.Stop()
-	go func() {
+	go func(ctx context.Context) {
 		for {
 			select {
+			case <-ctx.Done():
+				// Logg("Stop go func().")
+				return
 			case <-t.C:
 				// Logg("tick")
 				app.update()
 			}
 		}
-	}()
+	}(ctx)
 
 	// FIXME: Make a clear icon
 	icon, err := walk.Resources.Icon("alarm-check.ico")

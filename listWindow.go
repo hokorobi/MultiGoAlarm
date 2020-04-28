@@ -14,13 +14,13 @@ func ListWindow(parent app) {
 
 	app := newListWindow(parent.list)
 
-	// FIXME: ウィンドウを閉じたときに停止
-	// リストがある状態で ListWindow を閉じると他のウィンドウが脈動する
 	// ? / golangのよくあるtickerのサンプルがイケてない件 - okzkメモ http://okzk.hatenablog.com/entry/2015/12/01/001924
 	// ? / "Goで一定周期で何かを行う方法 - Qiita" https://qiita.com/ruiu/items/1ea0c72088ad8f2b841e
+	// TODO: goroutine を止める
+	// "Golangで周期的に実行するときのパターン - Qiita" https://qiita.com/tetsu_koba/items/1599408f537cb513b250
+	t := time.NewTicker(time.Second)
+	defer t.Stop()
 	go func() {
-		t := time.NewTicker(time.Second)
-		defer t.Stop()
 		for {
 			select {
 			case <-t.C:

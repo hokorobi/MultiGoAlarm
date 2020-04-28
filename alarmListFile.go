@@ -43,7 +43,10 @@ func (file *AlarmListFile) load(list *AlarmList) {
 	}
 
 	f, err := os.Open(file.name)
-	if err != nil {
+	if os.IsNotExist(err) {
+		// ファイルがなければ何もせずに新規作成
+		return
+	} else if err != nil {
 		Logg(err)
 		return
 	}

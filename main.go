@@ -168,18 +168,19 @@ func (app *app) alarm(items []AlarmItem) {
 	}
 }
 
+// https://qiita.com/KemoKemo/items/d135ddc93e6f87008521#comment-7d090bd8afe54df429b9
 func getFileNameWithoutExt(path string) string {
 	return filepath.Base(path[:len(path)-len(filepath.Ext(path))])
 }
-
-func getLogfilename() string {
+func getFilename(ext string) string {
 	exec, _ := os.Executable()
-	return filepath.Join(filepath.Dir(exec), getFileNameWithoutExt(exec)+".log")
+	return filepath.Join(filepath.Dir(exec), getFileNameWithoutExt(exec)+ext)
 }
+
 func Logg(m interface{}) {
-	f, err := os.OpenFile(getLogfilename(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	f, err := os.OpenFile(getFilename(".log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
-		panic("Cannot open log file:" + err.Error())
+		panic("Cannot open log file: " + err.Error())
 	}
 	defer f.Close()
 

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -21,14 +20,9 @@ type alarmListForJSON struct {
 // NewAlarmListFile は AlarmListFile を新規作成する関数
 func NewAlarmListFile() AlarmListFile {
 	var file AlarmListFile
-	file.name = file.getFilename()
+	file.name = getFilename(".json")
 
 	return file
-}
-
-func (file *AlarmListFile) getFilename() string {
-	exec, _ := os.Executable()
-	return filepath.Join(filepath.Dir(exec), getFileNameWithoutExt(exec)+".json")
 }
 
 func (file *AlarmListFile) write(list *AlarmList) {

@@ -44,6 +44,9 @@ func main() {
 		Logg(err)
 	}
 
+	Logg("Run.")
+	defer Logg("Stop.")
+
 	if _, err := (declarative.MainWindow{
 		AssignTo: &app.mw,
 		Title:    "MultiGoAlarm",

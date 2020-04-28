@@ -148,9 +148,15 @@ func (app *app) update() {
 		return
 	}
 
+	idx := app.lb.CurrentIndex()
 	items := app.list.update()
 	app.lb.SetModel(app.list)
 	app.alarm(items)
+	err := app.lb.SetCurrentIndex(idx)
+	if err != nil {
+		Logg(err)
+	}
+
 }
 func (app *app) alarm(items []AlarmItem) {
 	for i := range items {

@@ -35,8 +35,8 @@ func main() {
 		// t.Stop()
 	}()
 
-	ni := NotifyIcon(app.mw)
-	defer ni.Dispose()
+	// ni := NotifyIcon(app.mw)
+	// defer ni.Dispose()
 
 	if _, err := (declarative.MainWindow{
 		AssignTo: &app.mw,

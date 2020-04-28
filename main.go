@@ -38,11 +38,18 @@ func main() {
 	// ni := NotifyIcon(app.mw)
 	// defer ni.Dispose()
 
+	// FIXME: Make a clear icon
+	icon, err := walk.Resources.Icon("alarm-check.ico")
+	if err != nil {
+		Logg(err)
+	}
+
 	if _, err := (declarative.MainWindow{
 		AssignTo: &app.mw,
 		Title:    "MultiGoAlarm",
 		MinSize:  declarative.Size{Width: 400, Height: 300},
 		Size:     declarative.Size{Width: 400, Height: 300},
+		Icon:     icon,
 		Layout:   declarative.VBox{},
 		Children: []declarative.Widget{
 			declarative.ListBox{
@@ -121,10 +128,17 @@ func (app *app) clickAddDlg() {
 		// debug
 		// walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
 		app.list.add(*item)
+
+		iconpath, err2 := filepath.Abs("alarm-check.png")
+		if err2 != nil {
+			Logg(err2)
+		}
+
 		notify := toast.Notification{
 			AppID:   "MultiGoAlarm",
 			Title:   "Add Alarm",
-			Message: item.Message,
+			Icon:    iconpath,
+			Message: item.End.Format("15:04") + " " + item.Message,
 		}
 		err := notify.Push()
 		if err != nil {

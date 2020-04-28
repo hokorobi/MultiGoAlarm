@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -37,7 +36,7 @@ func (file *AlarmListFile) write(list *AlarmList) {
 	d.List = list.list
 	b, err := json.MarshalIndent(&d, "", "  ")
 	if err != nil {
-		log.Println(err)
+		Logg(err)
 	}
 
 	ioutil.WriteFile(file.name, b, os.ModePerm)
@@ -51,7 +50,7 @@ func (file *AlarmListFile) load(list *AlarmList) {
 
 	f, err := os.Open(file.name)
 	if err != nil {
-		log.Println(err)
+		Logg(err)
 		return
 	}
 	defer f.Close()
@@ -60,7 +59,7 @@ func (file *AlarmListFile) load(list *AlarmList) {
 	var d alarmListForJSON
 	err = dec.Decode(&d)
 	if err != nil {
-		log.Println(err)
+		Logg(err)
 		return
 	}
 
@@ -75,12 +74,12 @@ func (file *AlarmListFile) getMtime() time.Time {
 	}
 	// ファイルが存在しなかったら作成して変更時間を返す
 	if !os.IsNotExist(err1) {
-		log.Fatal(err1)
+		Logf(err1)
 	}
 	file.write(&AlarmList{list: make([]AlarmItem, 0)})
 	f2, err2 := os.Stat(file.name)
 	if err2 != nil {
-		log.Fatal(err2)
+		Logf(err2)
 	}
 	return f2.ModTime()
 }

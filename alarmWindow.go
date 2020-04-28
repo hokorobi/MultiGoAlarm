@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/lxn/walk"
 	"github.com/lxn/walk/declarative"
 )
@@ -41,6 +39,6 @@ func AlarmWindow(s string) {
 			},
 		},
 	}.Run()); err != nil {
-		log.Fatal(err)
+		Logf(err)
 	}
 }

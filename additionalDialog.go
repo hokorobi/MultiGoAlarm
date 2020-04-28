@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/lxn/walk"
 	"github.com/lxn/walk/declarative"
 )
@@ -39,7 +37,7 @@ func additionalDialog(owner walk.Form, s *additionalAlarmText) (int, error) {
 						Text:     "OK",
 						OnClicked: func() {
 							if err := db.Submit(); err != nil {
-								log.Print(err)
+								Logg(err)
 								return
 							}
 

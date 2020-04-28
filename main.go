@@ -27,7 +27,7 @@ func main() {
 		for {
 			select {
 			case <-t.C:
-				// log.Println("tick")
+				// Logg("tick")
 				app.update()
 			}
 		}
@@ -65,8 +65,7 @@ func main() {
 			},
 		},
 	}.Run()); err != nil {
-		Logg(err)
-		os.Exit(1)
+		Logf(err)
 	}
 }
 
@@ -91,8 +90,7 @@ func newApp() app {
 	var err error
 	app.mw, err = walk.NewMainWindow()
 	if err != nil {
-		Logg(err)
-		os.Exit(1)
+		Logf(err)
 	}
 	app.list = NewAlarmList()
 	return app
@@ -155,4 +153,8 @@ func Logg(m interface{}) {
 	log.SetOutput(io.MultiWriter(f, os.Stdout))
 	log.SetFlags(log.Ldate | log.Ltime)
 	log.Println(m)
+}
+func Logf(m interface{}) {
+	Logg(m)
+	os.Exit(1)
 }

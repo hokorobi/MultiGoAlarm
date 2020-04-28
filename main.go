@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		// TODO: 引数があったらアラームとして追加
 		// fmt.Printf("Error: %d - %s\n", int(err.(syscall.Errno)), err.Error())
-		os.Exit(0)
+		log.Fatal(err)
 	}
 
 	app := newApp()

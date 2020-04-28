@@ -14,8 +14,13 @@ func ListWindow(parent app) {
 
 	app := newListWindow(parent.list)
 
+	// FIXME: ウィンドウを閉じたときに停止
+	// リストがある状態で ListWindow を閉じると他のウィンドウが脈動する
+	// ? / golangのよくあるtickerのサンプルがイケてない件 - okzkメモ http://okzk.hatenablog.com/entry/2015/12/01/001924
+	// ? / "Goで一定周期で何かを行う方法 - Qiita" https://qiita.com/ruiu/items/1ea0c72088ad8f2b841e
 	go func() {
 		t := time.NewTicker(time.Second)
+		defer t.Stop()
 		for {
 			select {
 			case <-t.C:
@@ -23,7 +28,6 @@ func ListWindow(parent app) {
 				app.update()
 			}
 		}
-		// t.Stop()
 	}()
 
 	// FIXME: Make a clear icon
@@ -139,6 +143,10 @@ func (app *lw) clickAddDlg() {
 	}
 }
 func (app *lw) update() {
+	if len(app.list.list) < 1 {
+		return
+	}
+
 	idx := app.lb.CurrentIndex()
 	app.lb.SetModel(app.list)
 	err := app.lb.SetCurrentIndex(idx)

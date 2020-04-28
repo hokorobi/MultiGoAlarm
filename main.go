@@ -77,11 +77,6 @@ func main() {
 	}
 }
 
-func getLogFilename() string {
-	exec, _ := os.Executable()
-	return filepath.Join(filepath.Dir(exec), filepath.Base(exec)+".log")
-}
-
 // App はこのアプリ全体の型
 type app struct {
 	mw   *walk.MainWindow
@@ -164,12 +159,12 @@ func (app *app) alarm(items []AlarmItem) {
 	}
 }
 
-func getLogfile() string {
+func getLogfilename() string {
 	exec, _ := os.Executable()
 	return filepath.Join(filepath.Dir(exec), filepath.Base(exec)+".log")
 }
 func Logg(m interface{}) {
-	f, err := os.OpenFile(getLogfile(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	f, err := os.OpenFile(getLogfilename(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		panic("Cannot open log file:" + err.Error())
 	}

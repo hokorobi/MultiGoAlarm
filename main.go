@@ -159,9 +159,13 @@ func (app *app) alarm(items []AlarmItem) {
 	}
 }
 
+func getFileNameWithoutExt(path string) string {
+	return filepath.Base(path[:len(path)-len(filepath.Ext(path))])
+}
+
 func getLogfilename() string {
 	exec, _ := os.Executable()
-	return filepath.Join(filepath.Dir(exec), filepath.Base(exec)+".log")
+	return filepath.Join(filepath.Dir(exec), getFileNameWithoutExt(exec)+".log")
 }
 func Logg(m interface{}) {
 	f, err := os.OpenFile(getLogfilename(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)

@@ -28,7 +28,7 @@ func NewAlarmListFile() AlarmListFile {
 
 func (file *AlarmListFile) getFilename() string {
 	exec, _ := os.Executable()
-	return filepath.Join(filepath.Dir(exec), filepath.Base(exec)+".json")
+	return filepath.Join(filepath.Dir(exec), getFileNameWithoutExt(exec)+".json")
 }
 
 func (file *AlarmListFile) write(list *AlarmList) {

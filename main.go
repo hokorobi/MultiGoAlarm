@@ -41,7 +41,7 @@ func main() {
 		}
 	}()
 
-	app.ni = NotifyIcon(app.mw)
+	app.ni = NotifyIcon(&app)
 	defer app.ni.Dispose()
 
 	if len(os.Args) > 1 {
@@ -54,7 +54,7 @@ func main() {
 	}
 
 	// FIXME: ここで変数がふっとぶ？
-	ListWindow(app)
+	go ListWindow(app)
 
 	Logg("Run.")
 	defer Logg("Stop.")

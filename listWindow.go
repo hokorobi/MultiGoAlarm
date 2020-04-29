@@ -126,9 +126,9 @@ func (app *lw) clickAddDlg() {
 		// walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
 		app.list.add(*item)
 
-		iconpath, err2 := filepath.Abs("alarm-check.png")
-		if err2 != nil {
-			Logg(err2)
+		iconpath, err := filepath.Abs("alarm-check.png")
+		if err != nil {
+			Logg(err)
 		}
 
 		notify := toast.Notification{
@@ -137,7 +137,7 @@ func (app *lw) clickAddDlg() {
 			Icon:    iconpath,
 			Message: item.End.Format("15:04") + " " + item.Message,
 		}
-		err := notify.Push()
+		err = notify.Push()
 		if err != nil {
 			Logg(err)
 		}
@@ -145,15 +145,12 @@ func (app *lw) clickAddDlg() {
 		app.lb.SetModel(app.list)
 	}
 }
-func (app *lw) update() {
+func (lw *lw) update() {
 	// FIXME: 最後の一件がアラームされても残骸が残る
-	if len(app.list.list) < 1 {
-		return
-	}
 
-	idx := app.lb.CurrentIndex()
-	app.lb.SetModel(app.list)
-	err := app.lb.SetCurrentIndex(idx)
+	idx := lw.lb.CurrentIndex()
+	lw.lb.SetModel(lw.list)
+	err := lw.lb.SetCurrentIndex(idx)
 	if err != nil {
 		Logg(err)
 	}

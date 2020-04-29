@@ -36,7 +36,8 @@ func additionalDialog(owner walk.Form, s *additionalAlarmText) (int, error) {
 						AssignTo: &acceptPB,
 						Text:     "OK",
 						OnClicked: func() {
-							if err := db.Submit(); err != nil {
+							err := db.Submit()
+							if err != nil {
 								Logg(err)
 								return
 							}

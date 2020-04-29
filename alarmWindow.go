@@ -62,20 +62,18 @@ func AlarmWindow(s string) {
 	// "ウインドウサイズ" http://eternalwindows.jp/winbase/window/window13.html
 	win.SetWindowPos(aw.mw.Handle(), win.HWND_TOPMOST, 0, 0, 0, 0, win.SWP_FRAMECHANGED|win.SWP_NOMOVE|win.SWP_NOSIZE)
 
-	// FIXME: focus window
+	// FIXME: ウィンドウ表示時にフォーカスを移したい
 	aw.alarm()
 
 	aw.mw.Run()
 }
 
-type aw struct {
-	mw   *walk.MainWindow
-	orgX int32
-	orgY int32
+type alarmWindow struct {
+	mw *walk.MainWindow
 }
 
-func (aw *aw) alarm() {
-	aw.orgX, aw.orgY = aw.getWindowPos()
+func (aw *alarmWindow) alarm() {
+	orgX, orgY := aw.getWindowPos()
 	// "Golangで周期的に実行するときのパターン - Qiita" https://qiita.com/tetsu_koba/items/1599408f537cb513b250
 	ctx, cancel := context.WithCancel(context.Background())
 	t := time.NewTicker(100 * time.Millisecond)
@@ -85,7 +83,7 @@ func (aw *aw) alarm() {
 			case <-ctx.Done():
 				return
 			case <-t.C:
-				aw.cycleMove()
+				aw.cycleMove(orgX, orgY)
 			}
 		}
 	}(ctx)
@@ -95,32 +93,32 @@ func (aw *aw) alarm() {
 		cancel()
 	}()
 }
-func (aw *aw) cycleMove() {
+func (aw *alarmWindow) cycleMove(orgX int32, orgY int32) {
 	curX, curY := aw.getWindowPos()
-	if aw.orgX == curX && aw.orgY == curY {
+	if orgX == curX && orgY == curY {
 		// 1
-		aw.moveWindow(aw.orgX+50, aw.orgY-50)
-	} else if aw.orgX+50 == curX && aw.orgY-50 == curY {
+		aw.moveWindow(orgX+50, orgY-50)
+	} else if orgX+50 == curX && orgY-50 == curY {
 		// 2
-		aw.moveWindow(aw.orgX+100, aw.orgY)
-	} else if aw.orgX+100 == curX && aw.orgY == curY {
+		aw.moveWindow(orgX+100, orgY)
+	} else if orgX+100 == curX && orgY == curY {
 		// 3
-		aw.moveWindow(aw.orgX+50, aw.orgY+50)
+		aw.moveWindow(orgX+50, orgY+50)
 	} else {
-		aw.moveWindow(aw.orgX, aw.orgY)
+		aw.moveWindow(orgX, orgY)
 	}
 }
-func (aw *aw) moveWindow(x int32, y int32) {
+func (aw *alarmWindow) moveWindow(x int32, y int32) {
 	win.SetWindowPos(aw.mw.Handle(), win.HWND_TOPMOST, x, y, 0, 0, win.SWP_FRAMECHANGED|win.SWP_NOSIZE)
 }
-func (aw *aw) getWindowPos() (int32, int32) {
+func (aw *alarmWindow) getWindowPos() (int32, int32) {
 	// https://github.com/lxn/walk/blob/55ccb3a9f5c1dae7b1c94f70ea4f9db6afcb5021/form.go#L598-L615
 	var r win.RECT
 	win.GetWindowRect(aw.mw.Handle(), &r)
 	return r.Left, r.Top
 }
-func newAw() aw {
-	var aw aw
+func newAw() alarmWindow {
+	var aw alarmWindow
 	var err error
 
 	aw.mw, err = walk.NewMainWindow()

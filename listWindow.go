@@ -13,7 +13,7 @@ import (
 
 func ListWindow(parent app) {
 
-	app := newListWindow(parent.list)
+	lw := newListWindow(parent.list)
 
 	// "Golangで周期的に実行するときのパターン - Qiita" https://qiita.com/tetsu_koba/items/1599408f537cb513b250
 	ctx, cancel := context.WithCancel(context.Background())
@@ -28,7 +28,7 @@ func ListWindow(parent app) {
 				return
 			case <-t.C:
 				// Logg("tick")
-				app.update()
+				lw.update()
 			}
 		}
 	}(ctx)
@@ -43,7 +43,7 @@ func ListWindow(parent app) {
 	defer Logg("Stop.")
 
 	if _, err := (declarative.MainWindow{
-		AssignTo: &app.mw,
+		AssignTo: &lw.mw,
 		Title:    "MultiGoAlarm",
 		MinSize:  declarative.Size{Width: 400, Height: 300},
 		Size:     declarative.Size{Width: 400, Height: 300},
@@ -51,9 +51,9 @@ func ListWindow(parent app) {
 		Layout:   declarative.VBox{},
 		Children: []declarative.Widget{
 			declarative.ListBox{
-				AssignTo:        &app.lb,
+				AssignTo:        &lw.lb,
 				Model:           parent.list,
-				OnItemActivated: app.lbItemActivated,
+				OnItemActivated: lw.lbItemActivated,
 				Row:             10,
 			},
 			declarative.Composite{
@@ -61,7 +61,7 @@ func ListWindow(parent app) {
 				Children: []declarative.Widget{
 					declarative.PushButton{
 						Text:      "&Add",
-						OnClicked: app.clickAddDlg,
+						OnClicked: lw.clickAddDlg,
 					},
 					declarative.PushButton{
 						Text: "&Quit",
@@ -91,40 +91,40 @@ type additionalAlarmText struct {
 }
 
 func newListWindow(list *AlarmList) lw {
-	var app lw
+	var lw lw
 	var err error
-	app.mw, err = walk.NewMainWindow()
+	lw.mw, err = walk.NewMainWindow()
 	if err != nil {
 		Logf(err)
 	}
-	app.list = list
-	return app
+	lw.list = list
+	return lw
 }
 
-func (app *lw) lbItemActivated() {
-	if app.lb.CurrentIndex() < 0 {
+func (lw *lw) lbItemActivated() {
+	if lw.lb.CurrentIndex() < 0 {
 		return
 	}
 
-	app.list.del(app.lb.CurrentIndex())
-	app.lb.SetModel(app.list)
+	lw.list.del(lw.lb.CurrentIndex())
+	lw.lb.SetModel(lw.list)
 }
-func (app *lw) clickAddDlg() {
+func (lw *lw) clickAddDlg() {
 	newText := new(additionalAlarmText)
-	cmd, err := additionalDialog(app.mw, newText)
+	cmd, err := additionalDialog(lw.mw, newText)
 	if err != nil {
-		walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
+		walk.MsgBox(lw.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
 		return
 	}
 	if cmd == walk.DlgCmdOK {
 		item := NewAlarmItem(newText.Text)
 		if item == nil {
-			walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
+			walk.MsgBox(lw.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
 			return
 		}
 		// debug
 		// walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
-		app.list.add(*item)
+		lw.list.add(*item)
 
 		iconpath, err := filepath.Abs("alarm-check.png")
 		if err != nil {
@@ -142,7 +142,7 @@ func (app *lw) clickAddDlg() {
 			Logg(err)
 		}
 
-		app.lb.SetModel(app.list)
+		lw.lb.SetModel(lw.list)
 	}
 }
 func (lw *lw) update() {

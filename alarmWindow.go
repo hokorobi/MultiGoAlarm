@@ -29,7 +29,6 @@ func AlarmWindow(s string) {
 
 	winsize := declarative.Size{Width: 300, Height: 300}
 	// FIXME: too big button
-	// FIXME: too small font
 	err = declarative.MainWindow{
 		AssignTo: &aw.mw,
 		Title:    "Alarm",
@@ -41,6 +40,7 @@ func AlarmWindow(s string) {
 		Children: []declarative.Widget{
 			declarative.LinkLabel{
 				Text:    message,
+				Font:    declarative.Font{Family: "Meiryo", PointSize: 18},
 				MaxSize: declarative.Size{Width: 300, Height: 0},
 			},
 			declarative.VSpacer{},
@@ -62,6 +62,7 @@ func AlarmWindow(s string) {
 	// "ウインドウサイズ" http://eternalwindows.jp/winbase/window/window13.html
 	win.SetWindowPos(aw.mw.Handle(), win.HWND_TOPMOST, 0, 0, 0, 0, win.SWP_FRAMECHANGED|win.SWP_NOMOVE|win.SWP_NOSIZE)
 
+	// FIXME: focus window
 	aw.alarm()
 
 	aw.mw.Run()

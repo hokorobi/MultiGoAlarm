@@ -21,15 +21,22 @@ func AlarmWindow(s string) {
 		message = s
 	}
 
+	// FIXME: Make a clear icon
+	icon, err := walk.Resources.Icon("alarm-note.ico")
+	if err != nil {
+		Logg(err)
+	}
+
 	winsize := declarative.Size{Width: 300, Height: 300}
 	// FIXME: too big button
 	// FIXME: too small font
-	err := declarative.MainWindow{
+	err = declarative.MainWindow{
 		AssignTo: &aw.mw,
 		Title:    "Alarm",
 		MinSize:  winsize,
 		MaxSize:  winsize,
 		Size:     winsize,
+		Icon:     icon,
 		Layout:   declarative.VBox{},
 		Children: []declarative.Widget{
 			declarative.LinkLabel{

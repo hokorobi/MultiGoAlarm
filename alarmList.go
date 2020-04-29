@@ -46,6 +46,7 @@ func (list *AlarmList) update() []AlarmItem {
 	var candidateIds []string
 
 	now := time.Now()
+	list.load()
 	for i := 0; i < len(list.list); i++ {
 		// 終了時刻を過ぎている or 同じ
 		if list.list[i].isTimeUp(now) {

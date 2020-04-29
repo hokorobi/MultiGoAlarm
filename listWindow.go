@@ -146,6 +146,7 @@ func (app *lw) clickAddDlg() {
 	}
 }
 func (app *lw) update() {
+	// FIXME: 最後の一件がアラームされても残骸が残る
 	if len(app.list.list) < 1 {
 		return
 	}

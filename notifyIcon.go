@@ -6,6 +6,7 @@ import (
 	"github.com/lxn/walk"
 )
 
+// TODO: アイコンダブルクリックで ListWindow 表示
 func NotifyIcon(mw *walk.MainWindow) *walk.NotifyIcon {
 	// load icon
 	icon, err := walk.NewIconFromFile("alarm-check.ico")

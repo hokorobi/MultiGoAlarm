@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/lxn/walk"
@@ -15,9 +16,16 @@ import (
 func main() {
 	_, err := gow32.CreateMutex("MultiGoAlarm")
 	if err != nil {
-		// TODO: 引数があったらアラームとして追加
-		// fmt.Printf("Error: %d - %s\n", int(err.(syscall.Errno)), err.Error())
-		log.Fatal(err)
+		if len(os.Args) > 1 {
+			item := NewAlarmItem(strings.Join(os.Args[1:], " "))
+			if item == nil {
+				Logf("Error: Enter valid time format:" + strings.Join(os.Args[1:], " "))
+			}
+			list := NewAlarmList()
+			list.add(*item)
+			os.Exit(0)
+		}
+		os.Exit(1)
 	}
 
 	app := newApp()
@@ -36,6 +44,16 @@ func main() {
 	app.ni = NotifyIcon(app.mw)
 	defer app.ni.Dispose()
 
+	if len(os.Args) > 1 {
+		item := NewAlarmItem(strings.Join(os.Args[1:], " "))
+		if item == nil {
+			walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
+		} else {
+			app.list.add(*item)
+		}
+	}
+
+	// FIXME: ここで変数がふっとぶ？
 	ListWindow(app)
 
 	Logg("Run.")

@@ -1,16 +1,37 @@
 package main
 
 import (
+	"time"
+
 	"github.com/lxn/walk"
 	"github.com/lxn/walk/declarative"
 	"github.com/lxn/win"
 )
 
+type aw struct {
+	mw *walk.MainWindow
+}
+
+func (aw *aw) update() {
+
+}
+func newAw() aw {
+	var aw aw
+	var err error
+
+	aw.mw, err = walk.NewMainWindow()
+	if err != nil {
+		Logf(err)
+	}
+
+	return aw
+}
+
 // AlarmWindow はアラームウィンドウを表示する関数
 func AlarmWindow(s string) {
 	var message string
 
-	var mw *walk.MainWindow
+	aw := newAw()
 
 	if s == "" {
 		message = "It's Time!"
@@ -18,13 +39,24 @@ func AlarmWindow(s string) {
 		message = s
 	}
 
+	t := time.NewTicker(time.Second)
+	defer t.Stop()
+	go func() {
+		for {
+			select {
+			case <-t.C:
+				aw.update()
+			}
+		}
+	}()
+
 	winsize := declarative.Size{Width: 300, Height: 300}
 	// TODO: ウィンドウを動かして目立たせる
 	// "user interface - How to set window position and make it unresizable in Go walk - Stack Overflow" https://stackoverflow.com/questions/25949966/how-to-set-window-position-and-make-it-unresizable-in-go-walk
 	// FIXME: too big button
 	// FIXME: too small font
 	err := declarative.MainWindow{
-		AssignTo: &mw,
+		AssignTo: &aw.mw,
 		Title:    "Alarm",
 		MinSize:  winsize,
 		MaxSize:  winsize,
@@ -38,7 +70,7 @@ func AlarmWindow(s string) {
 			declarative.VSpacer{},
 			declarative.PushButton{
 				Text:      "&Close",
-				OnClicked: func() { mw.Close() },
+				OnClicked: func() { aw.mw.Close() },
 			},
 		},
 	}.Create()
@@ -52,7 +84,7 @@ func AlarmWindow(s string) {
 	//   一旦生成したWindowに対してsetwindowlongで変更を加えても反映されない｡
 	//    setwindowposで-1(HWND_TOPMOST)と-2(HWND_NOTOPMOSTを指定してやる必要がある"
 	// "ウインドウサイズ" http://eternalwindows.jp/winbase/window/window13.html
-	win.SetWindowPos(mw.Handle(), win.HWND_TOPMOST, 0, 0, 0, 0, win.SWP_FRAMECHANGED|win.SWP_NOMOVE|win.SWP_NOSIZE)
+	win.SetWindowPos(aw.mw.Handle(), win.HWND_TOPMOST, 0, 0, 0, 0, win.SWP_FRAMECHANGED|win.SWP_NOMOVE|win.SWP_NOSIZE)
 
-	mw.Run()
+	aw.mw.Run()
 }

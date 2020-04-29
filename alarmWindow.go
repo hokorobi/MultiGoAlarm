@@ -82,27 +82,24 @@ func (aw *aw) alarm() {
 		}
 	}(ctx)
 	go func() {
-		time.Sleep(time.Second)
+		time.Sleep(2 * time.Second)
 		t.Stop()
 		cancel()
 	}()
 }
 func (aw *aw) cycleMove() {
 	curX, curY := aw.getWindowPos()
-	if aw.orgX == curX {
-		if aw.orgY == curY {
-			aw.moveWindow(aw.orgX-50, aw.orgY)
-		} else if aw.orgY+50 == curY {
-			aw.moveWindow(aw.orgX, aw.orgY-50)
-		} else if aw.orgY-50 == curY {
-			aw.moveWindow(aw.orgX+50, aw.orgY)
-		} else {
-			aw.moveWindow(aw.orgX, aw.orgY)
-		}
-	} else if aw.orgX+50 == curX {
+	if aw.orgX == curX && aw.orgY == curY {
+		// 1
+		aw.moveWindow(aw.orgX+50, aw.orgY-50)
+	} else if aw.orgX+50 == curX && aw.orgY-50 == curY {
+		// 2
+		aw.moveWindow(aw.orgX+100, aw.orgY)
+	} else if aw.orgX+100 == curX && aw.orgY == curY {
+		// 3
+		aw.moveWindow(aw.orgX+50, aw.orgY+50)
+	} else {
 		aw.moveWindow(aw.orgX, aw.orgY)
-	} else if aw.orgX-50 == curX {
-		aw.moveWindow(aw.orgX, aw.orgY-50)
 	}
 }
 func (aw *aw) moveWindow(x int32, y int32) {

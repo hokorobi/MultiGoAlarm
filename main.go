@@ -53,9 +53,6 @@ func main() {
 		}
 	}
 
-	// FIXME: ここで変数がふっとぶ？
-	go ListWindow(app)
-
 	Logg("Run.")
 	defer Logg("Stop.")
 
@@ -85,12 +82,7 @@ func newApp() app {
 	app.list = NewAlarmList()
 	return app
 }
-
 func (app *app) update() {
-	if len(app.list.list) < 1 {
-		return
-	}
-
 	items := app.list.update()
 	app.alarm(items)
 }

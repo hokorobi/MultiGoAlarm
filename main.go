@@ -28,7 +28,6 @@ func main() {
 		for {
 			select {
 			case <-t.C:
-				// Logg("tick")
 				app.update()
 			}
 		}

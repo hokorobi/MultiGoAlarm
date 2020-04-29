@@ -15,6 +15,7 @@ func ListWindow(parent app) {
 
 	app := newListWindow(parent.list)
 
+	// "Golangで周期的に実行するときのパターン - Qiita" https://qiita.com/tetsu_koba/items/1599408f537cb513b250
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	t := time.NewTicker(time.Second)

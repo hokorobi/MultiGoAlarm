@@ -81,9 +81,10 @@ func ListWindow(parent app) {
 }
 
 type lw struct {
-	mw   *walk.MainWindow
-	lb   *walk.ListBox
-	list *AlarmList
+	mw    *walk.MainWindow
+	lb    *walk.ListBox
+	list  *AlarmList
+	count int
 }
 
 type additionalAlarmText struct {
@@ -146,10 +147,14 @@ func (lw *lw) clickAddDlg() {
 	}
 }
 func (lw *lw) update() {
-	// FIXME: 最後の一件がアラームされても残骸が残る
+	// No unnecessary update
+	if lw.count == 0 && lw.count == len(lw.list.list) {
+		return
+	}
 
 	idx := lw.lb.CurrentIndex()
 	lw.lb.SetModel(lw.list)
+	lw.count = len(lw.list.list)
 	err := lw.lb.SetCurrentIndex(idx)
 	if err != nil {
 		Logg(err)

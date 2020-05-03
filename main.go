@@ -52,6 +52,7 @@ func main() {
 			walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
 		} else {
 			app.list.add(*item)
+			notification(*item)
 		}
 	}
 

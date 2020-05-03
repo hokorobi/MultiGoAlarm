@@ -22,10 +22,8 @@ func showListWindow(parent app) {
 		for {
 			select {
 			case <-ctx.Done():
-				// Logg("Stop go func().")
 				return
 			case <-t.C:
-				// Logg("tick")
 				lw.update()
 			}
 		}
@@ -129,7 +127,7 @@ func (lw *lw) clickAddDlg() {
 	// lw.lb.SetModel は lw.update() で反映
 }
 func (lw *lw) update() {
-	// No unnecessary update
+	// 不要な更新はしない
 	if lw.count == 0 && lw.count == len(lw.list.list) {
 		return
 	}

@@ -24,6 +24,7 @@ func (list *alarmList) add(item alarmItem) {
 	list.load()
 	list.list = append(list.list, item)
 	list.write()
+	logg("Add Alarm: " + item.End.Format("15:04:05") + " " + item.Message)
 }
 
 func (list *alarmList) del(i int) {

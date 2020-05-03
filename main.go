@@ -91,6 +91,7 @@ func (app *app) update() {
 func (app *app) alarm(items []alarmItem) {
 	for i := range items {
 		go alarm(items[i].Message)
+		logg("Alarm: " + items[i].End.Format("15:04:05") + " " + items[i].Message)
 		time.Sleep(100 * time.Millisecond)
 	}
 }
@@ -105,7 +106,7 @@ func notification(item alarmItem) {
 		AppID:   "MultiGoAlarm",
 		Title:   "Add Alarm",
 		Icon:    iconpath,
-		Message: item.End.Format("15:04") + " " + item.Message,
+		Message: item.End.Format("15:04:05") + " " + item.Message,
 	}
 	err = notify.Push()
 	if err != nil {

@@ -3,10 +3,8 @@ package main
 import (
 	"context"
 	"os"
-	"path/filepath"
 	"time"
 
-	"github.com/go-toast/toast"
 	"github.com/lxn/walk"
 	"github.com/lxn/walk/declarative"
 )
@@ -117,34 +115,18 @@ func (lw *lw) clickAddDlg() {
 		walk.MsgBox(lw.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
 		return
 	}
-	if cmd == walk.DlgCmdOK {
-		item := newAlarmItem(newText.Text)
-		if item == nil {
-			walk.MsgBox(lw.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
-			return
-		}
-		// debug
-		// walk.MsgBox(mw, "confirm", item.start.String()+item.end.String()+item.message, walk.MsgBoxOK)
-		lw.list.add(*item)
-
-		iconpath, err := filepath.Abs("alarm-check.png")
-		if err != nil {
-			logg(err)
-		}
-
-		notify := toast.Notification{
-			AppID:   "MultiGoAlarm",
-			Title:   "Add Alarm",
-			Icon:    iconpath,
-			Message: item.End.Format("15:04") + " " + item.Message,
-		}
-		err = notify.Push()
-		if err != nil {
-			logg(err)
-		}
-
-		lw.lb.SetModel(lw.list)
+	if cmd != walk.DlgCmdOK {
+		return
 	}
+
+	item := newAlarmItem(newText.Text)
+	if item == nil {
+		walk.MsgBox(lw.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
+		return
+	}
+	lw.list.add(*item)
+	notification(*item)
+	// lw.lb.SetModel は lw.update() で反映
 }
 func (lw *lw) update() {
 	// No unnecessary update

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-toast/toast"
 	"github.com/lxn/walk"
 	"github.com/lxn/walk/declarative"
 	"github.com/rodolfoag/gow32"
@@ -23,6 +24,7 @@ func main() {
 			}
 			list := newAlarmList()
 			list.add(*item)
+			notification(*item)
 			os.Exit(0)
 		}
 		os.Exit(1)
@@ -90,6 +92,24 @@ func (app *app) alarm(items []alarmItem) {
 	for i := range items {
 		go alarm(items[i].Message)
 		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+func notification(item alarmItem) {
+	iconpath, err := filepath.Abs("alarm-check.png")
+	if err != nil {
+		logg(err)
+	}
+
+	notify := toast.Notification{
+		AppID:   "MultiGoAlarm",
+		Title:   "Add Alarm",
+		Icon:    iconpath,
+		Message: item.End.Format("15:04") + " " + item.Message,
+	}
+	err = notify.Push()
+	if err != nil {
+		logg(err)
 	}
 }
 

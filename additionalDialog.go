@@ -5,7 +5,6 @@ import (
 	"github.com/lxn/walk/declarative"
 )
 
-// additionalDialog はアラームウィンドウを表示する関数
 func additionalDialog(owner walk.Form, s *additionalAlarmText) (int, error) {
 	var dlg *walk.Dialog
 	var db *walk.DataBinder
@@ -38,7 +37,7 @@ func additionalDialog(owner walk.Form, s *additionalAlarmText) (int, error) {
 						OnClicked: func() {
 							err := db.Submit()
 							if err != nil {
-								Logg(err)
+								logg(err)
 								return
 							}
 

@@ -9,8 +9,7 @@ import (
 	"github.com/lxn/win"
 )
 
-// AlarmWindow はアラームウィンドウを表示する関数
-func AlarmWindow(s string) {
+func alarm(s string) {
 	var message string
 
 	aw := newAw()
@@ -24,7 +23,7 @@ func AlarmWindow(s string) {
 	// FIXME: Make a clear icon
 	icon, err := walk.Resources.Icon("alarm-note.ico")
 	if err != nil {
-		Logg(err)
+		logg(err)
 	}
 
 	winsize := declarative.Size{Width: 300, Height: 300}
@@ -51,7 +50,7 @@ func AlarmWindow(s string) {
 		},
 	}.Create()
 	if err != nil {
-		Logf(err)
+		logf(err)
 	}
 
 	// Windowスタイルの動的変更　その3 トップレベル表示: Xo式　実験室（labo.xo-ox.net）
@@ -123,7 +122,7 @@ func newAw() alarmWindow {
 
 	aw.mw, err = walk.NewMainWindow()
 	if err != nil {
-		Logf(err)
+		logf(err)
 	}
 
 	return aw

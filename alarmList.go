@@ -6,33 +6,32 @@ import (
 	"github.com/lxn/walk"
 )
 
-type AlarmList struct {
-	file AlarmListFile
+type alarmList struct {
+	file alarmListFile
 	walk.ListModelBase
-	list []AlarmItem
+	list []alarmItem
 }
 
-// NewAlarmList は AlarmList を生成する関数
-func NewAlarmList() *AlarmList {
-	m := &AlarmList{list: make([]AlarmItem, 0)}
-	m.file = NewAlarmListFile()
+func newAlarmList() *alarmList {
+	m := &alarmList{list: make([]alarmItem, 0)}
+	m.file = newAlarmListFile()
 	m.load()
 	m.deleteTimeout()
 	return m
 }
 
-func (list *AlarmList) add(item AlarmItem) {
+func (list *alarmList) add(item alarmItem) {
 	list.load()
 	list.list = append(list.list, item)
 	list.write()
 }
 
-func (list *AlarmList) del(i int) {
+func (list *alarmList) del(i int) {
 	list.list = append(list.list[:i], list.list[i+1:]...)
 	list.write()
 }
 
-func (list *AlarmList) delID(id string) {
+func (list *alarmList) delID(id string) {
 	for i := range list.list {
 		if list.list[i].ID == id {
 			list.del(i)
@@ -41,8 +40,8 @@ func (list *AlarmList) delID(id string) {
 	}
 }
 
-func (list *AlarmList) update() []AlarmItem {
-	var candidateItems []AlarmItem
+func (list *alarmList) update() []alarmItem {
+	var candidateItems []alarmItem
 	var candidateIds []string
 
 	now := time.Now()
@@ -63,23 +62,23 @@ func (list *AlarmList) update() []AlarmItem {
 	return candidateItems
 }
 
-func (list *AlarmList) load() {
+func (list *alarmList) load() {
 	list.file.load(list)
 }
 
-func (list *AlarmList) write() {
+func (list *alarmList) write() {
 	list.file.write(list)
 }
 
-func (list *AlarmList) ItemCount() int {
+func (list *alarmList) ItemCount() int {
 	return len(list.list)
 }
 
-func (list *AlarmList) Value(index int) interface{} {
+func (list *alarmList) Value(index int) interface{} {
 	return list.list[index].Value
 }
 
-func (list *AlarmList) deleteTimeout() {
+func (list *alarmList) deleteTimeout() {
 	var isDelete bool
 	for _, e := range list.list {
 		if e.End.Before(time.Now()) {

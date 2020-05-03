@@ -10,8 +10,7 @@ import (
 	"github.com/rs/xid"
 )
 
-// AlarmItem はアラームのクラス
-type AlarmItem struct {
+type alarmItem struct {
 	Start   *time.Time `json:"start"`
 	End     *time.Time `json:"end"`
 	Message string     `json:"message"`
@@ -19,7 +18,7 @@ type AlarmItem struct {
 	ID      string     `json:"id"`
 }
 
-func (item *AlarmItem) setValue(start time.Time) {
+func (item *alarmItem) setValue(start time.Time) {
 	hour := "00"
 	minute := "00"
 	second := "00"
@@ -45,7 +44,7 @@ func (item *AlarmItem) setValue(start time.Time) {
 	item.Value = fmt.Sprintf("%02s:%02s:%02s %s", hour, minute, second, item.Message)
 }
 
-func (item *AlarmItem) getTime(s string) (*time.Time, *time.Time) {
+func (item *alarmItem) getTime(s string) (*time.Time, *time.Time) {
 	start := time.Now()
 	// 数字だけなら分として扱う
 	if d, err := time.ParseDuration(s + "m"); err == nil {
@@ -74,8 +73,7 @@ func (item *AlarmItem) getTime(s string) (*time.Time, *time.Time) {
 	return nil, nil
 }
 
-// NewAlarmItem は AlarmItem を生成する関数
-func NewAlarmItem(s string) *AlarmItem {
+func newAlarmItem(s string) *alarmItem {
 	var message string
 	var timeString string
 
@@ -87,7 +85,7 @@ func NewAlarmItem(s string) *AlarmItem {
 		message = ""
 	}
 
-	item := new(AlarmItem)
+	item := new(alarmItem)
 	start, end := item.getTime(timeString)
 	if start == nil {
 		return nil
@@ -101,7 +99,7 @@ func NewAlarmItem(s string) *AlarmItem {
 	return item
 }
 
-func (item *AlarmItem) isTimeUp(now time.Time) bool {
+func (item *alarmItem) isTimeUp(now time.Time) bool {
 	if item.End.Sub(now).Seconds() < 1.0 {
 		return true
 	}

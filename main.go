@@ -17,11 +17,11 @@ func main() {
 	_, err := gow32.CreateMutex("MultiGoAlarm")
 	if err != nil {
 		if len(os.Args) > 1 {
-			item := NewAlarmItem(strings.Join(os.Args[1:], " "))
+			item := newAlarmItem(strings.Join(os.Args[1:], " "))
 			if item == nil {
-				Logf("Error: Enter valid time format:" + strings.Join(os.Args[1:], " "))
+				logf("Error: Enter valid time format:" + strings.Join(os.Args[1:], " "))
 			}
-			list := NewAlarmList()
+			list := newAlarmList()
 			list.add(*item)
 			os.Exit(0)
 		}
@@ -41,11 +41,11 @@ func main() {
 		}
 	}()
 
-	app.ni = NotifyIcon(&app)
+	app.ni = newNotifyIcon(&app)
 	defer app.ni.Dispose()
 
 	if len(os.Args) > 1 {
-		item := NewAlarmItem(strings.Join(os.Args[1:], " "))
+		item := newAlarmItem(strings.Join(os.Args[1:], " "))
 		if item == nil {
 			walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
 		} else {
@@ -53,22 +53,22 @@ func main() {
 		}
 	}
 
-	Logg("Run.")
-	defer Logg("Stop.")
+	logg("Run.")
+	defer logg("Stop.")
 
 	if _, err := (declarative.MainWindow{
 		AssignTo: &app.mw,
 		Title:    "MultiGoAlarm",
 		Visible:  false,
 	}.Run()); err != nil {
-		Logf(err)
+		logf(err)
 	}
 }
 
 // App はこのアプリ全体の型
 type app struct {
 	mw   *walk.MainWindow
-	list *AlarmList
+	list *alarmList
 	ni   *walk.NotifyIcon
 }
 
@@ -77,18 +77,18 @@ func newApp() app {
 	var err error
 	app.mw, err = walk.NewMainWindow()
 	if err != nil {
-		Logf(err)
+		logf(err)
 	}
-	app.list = NewAlarmList()
+	app.list = newAlarmList()
 	return app
 }
 func (app *app) update() {
 	items := app.list.update()
 	app.alarm(items)
 }
-func (app *app) alarm(items []AlarmItem) {
+func (app *app) alarm(items []alarmItem) {
 	for i := range items {
-		go AlarmWindow(items[i].Message)
+		go alarm(items[i].Message)
 		time.Sleep(100 * time.Millisecond)
 	}
 }
@@ -102,7 +102,7 @@ func getFilename(ext string) string {
 	return filepath.Join(filepath.Dir(exec), getFileNameWithoutExt(exec)+ext)
 }
 
-func Logg(m interface{}) {
+func logg(m interface{}) {
 	f, err := os.OpenFile(getFilename(".log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		panic("Cannot open log file: " + err.Error())
@@ -113,7 +113,7 @@ func Logg(m interface{}) {
 	log.SetFlags(log.Ldate | log.Ltime)
 	log.Println(m)
 }
-func Logf(m interface{}) {
-	Logg(m)
+func logf(m interface{}) {
+	logg(m)
 	os.Exit(1)
 }

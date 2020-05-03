@@ -11,7 +11,7 @@ import (
 	"github.com/lxn/walk/declarative"
 )
 
-func ListWindow(parent app) {
+func showListWindow(parent app) {
 
 	lw := newListWindow(parent.list)
 
@@ -36,11 +36,11 @@ func ListWindow(parent app) {
 	// FIXME: Make a clear icon
 	icon, err := walk.Resources.Icon("alarm-check.ico")
 	if err != nil {
-		Logg(err)
+		logg(err)
 	}
 
-	Logg("Run.")
-	defer Logg("Stop.")
+	logg("Run.")
+	defer logg("Stop.")
 
 	if _, err := (declarative.MainWindow{
 		AssignTo: &lw.mw,
@@ -52,7 +52,7 @@ func ListWindow(parent app) {
 		Children: []declarative.Widget{
 			declarative.ListBox{
 				AssignTo:        &lw.lb,
-				Model:           parent.list,
+				Model:           lw.list,
 				OnItemActivated: lw.lbItemActivated,
 				Row:             10,
 			},
@@ -76,14 +76,14 @@ func ListWindow(parent app) {
 			},
 		},
 	}.Run()); err != nil {
-		Logf(err)
+		logf(err)
 	}
 }
 
 type lw struct {
 	mw    *walk.MainWindow
 	lb    *walk.ListBox
-	list  *AlarmList
+	list  *alarmList
 	count int
 }
 
@@ -91,12 +91,12 @@ type additionalAlarmText struct {
 	Text string
 }
 
-func newListWindow(list *AlarmList) lw {
+func newListWindow(list *alarmList) lw {
 	var lw lw
 	var err error
 	lw.mw, err = walk.NewMainWindow()
 	if err != nil {
-		Logf(err)
+		logf(err)
 	}
 	lw.list = list
 	return lw
@@ -118,7 +118,7 @@ func (lw *lw) clickAddDlg() {
 		return
 	}
 	if cmd == walk.DlgCmdOK {
-		item := NewAlarmItem(newText.Text)
+		item := newAlarmItem(newText.Text)
 		if item == nil {
 			walk.MsgBox(lw.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
 			return
@@ -129,7 +129,7 @@ func (lw *lw) clickAddDlg() {
 
 		iconpath, err := filepath.Abs("alarm-check.png")
 		if err != nil {
-			Logg(err)
+			logg(err)
 		}
 
 		notify := toast.Notification{
@@ -140,7 +140,7 @@ func (lw *lw) clickAddDlg() {
 		}
 		err = notify.Push()
 		if err != nil {
-			Logg(err)
+			logg(err)
 		}
 
 		lw.lb.SetModel(lw.list)
@@ -157,7 +157,7 @@ func (lw *lw) update() {
 	lw.count = len(lw.list.list)
 	err := lw.lb.SetCurrentIndex(idx)
 	if err != nil {
-		Logg(err)
+		logg(err)
 	}
 
 }

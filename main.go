@@ -109,7 +109,7 @@ func Logg(m interface{}) {
 	}
 	defer f.Close()
 
-	log.SetOutput(io.MultiWriter(f, os.Stdout))
+	log.SetOutput(io.MultiWriter(f, os.Stderr))
 	log.SetFlags(log.Ldate | log.Ltime)
 	log.Println(m)
 }

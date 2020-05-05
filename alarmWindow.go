@@ -21,7 +21,7 @@ func alarm(s string) {
 	}
 
 	// FIXME: Make a clear icon
-	icon, err := walk.Resources.Icon("alarm-note.ico")
+	icon, err := walk.NewIconFromImageForDPI(getIcon("/alarm-note.png"), 96)
 	if err != nil {
 		logg(err)
 	}

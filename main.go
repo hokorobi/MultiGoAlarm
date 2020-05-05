@@ -1,6 +1,8 @@
 package main
 
 import (
+	"image"
+	"image/png"
 	"io"
 	"log"
 	"os"
@@ -8,10 +10,13 @@ import (
 	"strings"
 	"time"
 
+	_ "github.com/hokorobi/MultiGoAlarm/statik"
+
 	"github.com/go-toast/toast"
 	"github.com/lxn/walk"
 	"github.com/lxn/walk/declarative"
 	"github.com/lxn/win"
+	"github.com/rakyll/statik/fs"
 	"github.com/rodolfoag/gow32"
 )
 
@@ -50,6 +55,7 @@ func main() {
 	if len(os.Args) > 1 {
 		item := newAlarmItem(strings.Join(os.Args[1:], " "))
 		if item == nil {
+			// TODO: Focus on display
 			walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
 		} else {
 			app.list.add(*item)
@@ -76,7 +82,7 @@ func main() {
 				OnClicked: app.clickAddDlg,
 			},
 		},
-		// Minimize to hide
+		// Minimize to hide window
 		OnSizeChanged: func() {
 			if win.IsIconic(app.mw.Handle()) {
 				app.mw.Hide()
@@ -89,6 +95,7 @@ func main() {
 
 	// https://github.com/lxn/walk/issues/127
 	app.addNotifyIcon()
+	defer app.ni.Dispose()
 	app.mw.Run()
 }
 
@@ -172,18 +179,17 @@ func (app *app) addNotifyIcon() {
 		logf(err)
 	}
 
-	// FIXME: Make a clear icon
-	icon, err := walk.Resources.Icon("alarm-check.ico")
+	icon, err := walk.NewIconFromImageForDPI(getIcon("/alarm-check.png"), 96)
 	if err != nil {
-		logg(err)
+		logf(err)
 	}
 	err = app.mw.SetIcon(icon)
 	if err != nil {
-		logg(err)
+		logf(err)
 	}
 	err = app.ni.SetIcon(icon)
 	if err != nil {
-		logg(err)
+		logf(err)
 	}
 
 	// We put an exit action into the context menu.
@@ -214,23 +220,36 @@ func (app *app) addNotifyIcon() {
 
 }
 
+func getIcon(s string) image.Image {
+	statikFS, err := fs.New()
+	if err != nil {
+		logf(err)
+	}
+
+	r, err := statikFS.Open(s)
+	if err != nil {
+		logf(err)
+	}
+	defer r.Close()
+
+	img, err := png.Decode(r)
+	if err != nil {
+		logf(err)
+	}
+	return img
+}
+
 type additionalAlarmText struct {
 	Text string
 }
 
 func notification(item alarmItem) {
-	iconpath, err := filepath.Abs("alarm-check.png")
-	if err != nil {
-		logg(err)
-	}
-
 	notify := toast.Notification{
 		AppID:   "MultiGoAlarm",
 		Title:   "Add Alarm",
-		Icon:    iconpath,
 		Message: item.End.Format("15:04:05") + " " + item.Message,
 	}
-	err = notify.Push()
+	err := notify.Push()
 	if err != nil {
 		logg(err)
 	}

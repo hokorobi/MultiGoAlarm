@@ -1,8 +1,8 @@
-.hg
 vendor
 tags
 
 *.exe
 *.log
 *.json
+*.7z
 

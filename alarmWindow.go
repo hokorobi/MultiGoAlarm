@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"time"
 
 	"github.com/lxn/walk"
 	"github.com/lxn/walk/declarative"
 	"github.com/lxn/win"
 )
+
+//go:embed icon/alarm-note.png
+var imgAlarmNote []byte
 
 func alarm(s string) {
 	var message string
@@ -21,7 +25,8 @@ func alarm(s string) {
 	}
 
 	// FIXME: Make a clear icon
-	icon, err := walk.NewIconFromImageForDPI(getIcon("/alarm-note.png"), 96)
+
+	icon, err := walk.NewIconFromImageForDPI(getIcon(imgAlarmNote), 96)
 	if err != nil {
 		logg(err)
 	}

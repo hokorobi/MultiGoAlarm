@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	_ "embed"
 	"image"
 	"image/png"
 	"io"
@@ -10,15 +12,15 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/hokorobi/MultiGoAlarm/statik"
-
 	"github.com/go-toast/toast"
 	"github.com/lxn/walk"
 	"github.com/lxn/walk/declarative"
 	"github.com/lxn/win"
-	"github.com/rakyll/statik/fs"
 	"github.com/rodolfoag/gow32"
 )
+
+//go:embed icon/alarm-check.png
+var imgAlarmCheck []byte
 
 func main() {
 	_, err := gow32.CreateMutex("MultiGoAlarm")
@@ -179,7 +181,7 @@ func (app *app) addNotifyIcon() {
 		logf(err)
 	}
 
-	icon, err := walk.NewIconFromImageForDPI(getIcon("/alarm-check.png"), 96)
+	icon, err := walk.NewIconFromImageForDPI(getIcon(imgAlarmCheck), 96)
 	if err != nil {
 		logf(err)
 	}
@@ -220,19 +222,8 @@ func (app *app) addNotifyIcon() {
 
 }
 
-func getIcon(s string) image.Image {
-	statikFS, err := fs.New()
-	if err != nil {
-		logf(err)
-	}
-
-	r, err := statikFS.Open(s)
-	if err != nil {
-		logf(err)
-	}
-	defer r.Close()
-
-	img, err := png.Decode(r)
+func getIcon(icon []byte) image.Image {
+	img, err := png.Decode(bytes.NewReader(icon))
 	if err != nil {
 		logf(err)
 	}

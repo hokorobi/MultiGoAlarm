@@ -1,4 +1,4 @@
-module github.com/hokorobi/MultiGoAlarm2
+module github.com/hokorobi/MultiGoAlarm
 
 go 1.19
 

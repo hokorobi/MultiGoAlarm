@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
 	"fmt"
+	"image"
+	"image/png"
 	"time"
 
 	"github.com/hokorobi/go-utils/logutil"
@@ -30,7 +33,7 @@ func alarm(s string) {
 
 	icon, err := walk.NewIconFromImageForDPI(getIcon(imgAlarmNote), 96)
 	if err != nil {
-		logg(err)
+		logutil.PrintTee(err)
 	}
 
 	winsize := declarative.Size{Width: 400, Height: 300}
@@ -57,7 +60,7 @@ func alarm(s string) {
 		},
 	}.Create()
 	if err != nil {
-		logf(err)
+		logutil.FatalTee(err)
 	}
 
 	// Windowスタイルの動的変更　その3 トップレベル表示: Xo式　実験室（labo.xo-ox.net）
@@ -134,8 +137,16 @@ func newAw() alarmWindow {
 
 	aw.mw, err = walk.NewMainWindow()
 	if err != nil {
-		logf(err)
+		logutil.FatalTee(err)
 	}
 
 	return aw
+}
+
+func getIcon(icon []byte) image.Image {
+	img, err := png.Decode(bytes.NewReader(icon))
+	if err != nil {
+		logutil.FatalTee(err)
+	}
+	return img
 }

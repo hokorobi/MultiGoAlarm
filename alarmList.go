@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/go-toast/toast"
+	"github.com/hokorobi/go-utils/logutil"
 	"github.com/lxn/walk"
 )
 
@@ -26,7 +27,7 @@ func (list *alarmList) add(item alarmItem) {
 	list.load()
 	list.list = append(list.list, item)
 	list.write()
-	logg("Add Alarm: " + item.End.Format("15:04:05") + " " + item.Message)
+	logutil.PrintTee("Add Alarm: " + item.End.Format("15:04:05") + " " + item.Message)
 	notification(item)
 }
 func (list *alarmList) sort() {
@@ -43,7 +44,7 @@ func notification(item alarmItem) {
 	}
 	err := notify.Push()
 	if err != nil {
-		logg(err)
+		logutil.PrintTee(err)
 	}
 }
 

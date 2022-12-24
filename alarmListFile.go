@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 	"time"
+
+	"github.com/hokorobi/go-utils/logutil"
 )
 
 type alarmListFile struct {
@@ -28,7 +30,7 @@ func (file *alarmListFile) write(list *alarmList) {
 	d.List = list.list
 	b, err := json.MarshalIndent(&d, "", "  ")
 	if err != nil {
-		logg(err)
+		logutil.PrintTee(err)
 	}
 
 	ioutil.WriteFile(file.name, b, os.ModePerm)
@@ -45,7 +47,7 @@ func (file *alarmListFile) load(list *alarmList) {
 		// ファイルがなければ何もせずに新規作成
 		return
 	} else if err != nil {
-		logg(err)
+		logutil.PrintTee(err)
 		return
 	}
 	defer f.Close()
@@ -54,7 +56,7 @@ func (file *alarmListFile) load(list *alarmList) {
 	var d alarmListForJSON
 	err = dec.Decode(&d)
 	if err != nil {
-		logg(err)
+		logutil.PrintTee(err)
 		return
 	}
 
@@ -69,12 +71,12 @@ func (file *alarmListFile) getMtime() time.Time {
 	}
 	// ファイルが存在しなかったら作成して変更時間を返す
 	if !os.IsNotExist(err1) {
-		logf(err1)
+		logutil.FatalTee(err1)
 	}
 	file.write(&alarmList{list: make([]alarmItem, 0)})
 	f2, err2 := os.Stat(file.name)
 	if err2 != nil {
-		logf(err2)
+		logutil.FatalTee(err2)
 	}
 	return f2.ModTime()
 }

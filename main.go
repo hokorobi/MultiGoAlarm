@@ -47,12 +47,7 @@ func main() {
 			win.MB_OK)
 	}
 
-	_, err := gow32.CreateMutex("MultiGoAlarm")
-	if err != nil {
-		if len(flag.Args()) == 0 {
-			os.Exit(1)
-		}
-
+	if len(flag.Args()) > 0 {
 		item := newAlarmItem(strings.Join(flag.Args(), " "))
 		if item == nil {
 			win.MessageBox(
@@ -60,10 +55,14 @@ func main() {
 				UTF16PtrFromString("Error: Enter valid time format:"+strings.Join(flag.Args(), " ")),
 				UTF16PtrFromString("Error"),
 				win.MB_OK+win.MB_ICONEXCLAMATION)
-			os.Exit(1)
+		} else {
+			templist := loadAlarmList()
+			templist.add(*item)
 		}
-		templist := loadAlarmList()
-		templist.add(*item)
+	}
+
+	_, err := gow32.CreateMutex("MultiGoAlarm")
+	if err != nil {
 		os.Exit(0)
 	}
 
@@ -73,7 +72,7 @@ func main() {
 	app := newApp()
 
 	sc := gocron.NewScheduler(time.UTC)
-	sc.Every(5).Seconds().Do(app.update)
+	sc.Every(1).Seconds().Do(app.update)
 	sc.StartBlocking()
 }
 
@@ -82,11 +81,9 @@ func newApp() app {
 	app.list = loadAlarmList()
 	return app
 }
-
 func (app *app) update() {
 	items := app.list.update()
 	app.alarm(items)
-
 }
 func (app *app) alarm(items []alarmItem) {
 	for i := range items {

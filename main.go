@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	_ "embed"
 	"image"
 	"image/png"
 	"io"
@@ -10,134 +9,60 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
-	"github.com/go-toast/toast"
-	"github.com/lxn/walk"
-	"github.com/lxn/walk/declarative"
+	"github.com/go-co-op/gocron"
+	"github.com/hokorobi/go-utils/logutil"
 	"github.com/lxn/win"
 	"github.com/rodolfoag/gow32"
 )
 
-//go:embed icon/alarm-check.png
-var imgAlarmCheck []byte
+type app struct {
+	list *alarmList
+}
 
 func main() {
 	_, err := gow32.CreateMutex("MultiGoAlarm")
 	if err != nil {
-		if len(os.Args) > 1 {
-			item := newAlarmItem(strings.Join(os.Args[1:], " "))
-			if item == nil {
-				logf("Error: Enter valid time format:" + strings.Join(os.Args[1:], " "))
-			}
-			list := newAlarmList()
-			list.add(*item)
-			notification(*item)
-			os.Exit(0)
+		if len(os.Args) == 0 {
+			os.Exit(1)
 		}
-		os.Exit(1)
+
+		item := newAlarmItem(strings.Join(os.Args[1:], " "))
+		if item == nil {
+			win.MessageBox(
+				win.HWND(0),
+				UTF16PtrFromString("Error: Enter valid time format:"+strings.Join(os.Args[1:], " ")),
+				UTF16PtrFromString("URL を開く周期を指定してください"),
+				win.MB_OK+win.MB_ICONEXCLAMATION)
+			os.Exit(1)
+		}
+		templist := newAlarmList()
+		templist.add(*item)
+		os.Exit(0)
 	}
+
+	logutil.PrintTee("Start")
+	defer logutil.PrintTee("End")
 
 	app := newApp()
 
-	t := time.NewTicker(time.Second)
-	defer t.Stop()
-	go func() {
-		for {
-			select {
-			case <-t.C:
-				app.update()
-			}
-		}
-	}()
-
-	logg("Run.")
-	defer logg("Stop.")
-
-	if len(os.Args) > 1 {
-		item := newAlarmItem(strings.Join(os.Args[1:], " "))
-		if item == nil {
-			// TODO: Focus on display
-			walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
-		} else {
-			app.list.add(*item)
-			notification(*item)
-		}
-	}
-
-	err = declarative.MainWindow{
-		AssignTo: &app.mw,
-		Title:    "MultiGoAlarm",
-		MinSize:  declarative.Size{Width: 400, Height: 300},
-		Size:     declarative.Size{Width: 400, Height: 300},
-		Visible:  false,
-		Layout:   declarative.VBox{},
-		Children: []declarative.Widget{
-			declarative.ListBox{
-				AssignTo:        &app.lb,
-				Model:           app.list,
-				OnItemActivated: app.lbItemActivated,
-				Row:             10,
-			},
-			declarative.PushButton{
-				Text:      "&Add",
-				OnClicked: app.clickAddDlg,
-			},
-		},
-		// Minimize to hide window
-		OnSizeChanged: func() {
-			if win.IsIconic(app.mw.Handle()) {
-				app.mw.Hide()
-			}
-		},
-	}.Create()
-	if err != nil {
-		logf(err)
-	}
-
-	// https://github.com/lxn/walk/issues/127
-	app.addNotifyIcon()
-	defer app.ni.Dispose()
-	app.mw.Run()
-}
-
-type app struct {
-	mw    *walk.MainWindow
-	lb    *walk.ListBox
-	list  *alarmList
-	ni    *walk.NotifyIcon
-	count int
+	sc := gocron.NewScheduler(time.UTC)
+	sc.Every(5).Seconds().Do(app.update)
+	sc.StartBlocking()
 }
 
 func newApp() app {
 	var app app
-	var err error
-	app.mw, err = walk.NewMainWindow()
-	if err != nil {
-		logf(err)
-	}
 	app.list = newAlarmList()
 	return app
 }
+
 func (app *app) update() {
 	items := app.list.update()
 	app.alarm(items)
 
-	if !app.mw.Visible() {
-		return
-	}
-
-	if app.count == 0 && app.count == len(app.list.list) {
-		return
-	}
-
-	idx := app.lb.CurrentIndex()
-	app.lb.SetModel(app.list)
-	app.count = len(app.list.list)
-	err := app.lb.SetCurrentIndex(idx)
-	if err != nil {
-		logg(err)
-	}
 }
 func (app *app) alarm(items []alarmItem) {
 	for i := range items {
@@ -146,80 +71,24 @@ func (app *app) alarm(items []alarmItem) {
 		time.Sleep(100 * time.Millisecond)
 	}
 }
-func (app *app) lbItemActivated() {
-	if app.lb.CurrentIndex() < 0 {
-		return
-	}
 
-	app.list.del(app.lb.CurrentIndex())
-	app.lb.SetModel(app.list)
+// "Go から Windows の MessageBox を呼び出す - Qiita" https://qiita.com/manymanyuni/items/867d7e0112ce22dec6d5
+func UTF16PtrFromString(s string) *uint16 {
+	result, _ := syscall.UTF16PtrFromString(s)
+	return result
 }
-func (app *app) clickAddDlg() {
-	newText := new(additionalAlarmText)
-	cmd, err := additionalDialog(app.mw, newText)
-	if err != nil {
-		walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
-		return
-	}
-	if cmd != walk.DlgCmdOK {
-		return
-	}
 
-	item := newAlarmItem(newText.Text)
-	if item == nil {
-		walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
-		return
-	}
-	app.list.add(*item)
-	notification(*item)
-	// app.lb.SetModel は app.update() で反映
+func execSchedule() {
+	logutil.PrintTee("yahoo")
 }
-func (app *app) addNotifyIcon() {
-	var err error
-	app.ni, err = walk.NewNotifyIcon(app.mw)
-	if err != nil {
-		logf(err)
-	}
 
-	icon, err := walk.NewIconFromImageForDPI(getIcon(imgAlarmCheck), 96)
+func parseInTokyo(layout string, value string) (time.Time, error) {
+	loc, _ := time.LoadLocation("Asia/Tokyo")
+	t, err := time.ParseInLocation(layout, value, loc)
 	if err != nil {
-		logf(err)
+		return t, err
 	}
-	err = app.mw.SetIcon(icon)
-	if err != nil {
-		logf(err)
-	}
-	err = app.ni.SetIcon(icon)
-	if err != nil {
-		logf(err)
-	}
-
-	// We put an exit action into the context menu.
-	exitAction := walk.NewAction()
-	err = exitAction.SetText("E&xit")
-	if err != nil {
-		logf(err)
-	}
-	exitAction.Triggered().Attach(
-		func() {
-			app.ni.Dispose()
-			// TODO: Improve exit
-			os.Exit(0)
-		},
-	)
-	err = app.ni.ContextMenu().Actions().Add(exitAction)
-	if err != nil {
-		logf(err)
-	}
-
-	app.ni.SetVisible(true)
-	app.ni.MouseDown().Attach(func(x, y int, button walk.MouseButton) {
-		if button == walk.LeftButton {
-			app.mw.Show()
-			win.ShowWindow(app.mw.Handle(), win.SW_RESTORE)
-		}
-	})
-
+	return t, nil
 }
 
 func getIcon(icon []byte) image.Image {
@@ -228,22 +97,6 @@ func getIcon(icon []byte) image.Image {
 		logf(err)
 	}
 	return img
-}
-
-type additionalAlarmText struct {
-	Text string
-}
-
-func notification(item alarmItem) {
-	notify := toast.Notification{
-		AppID:   "MultiGoAlarm",
-		Title:   "Add Alarm",
-		Message: item.End.Format("15:04:05") + " " + item.Message,
-	}
-	err := notify.Push()
-	if err != nil {
-		logg(err)
-	}
 }
 
 // https://qiita.com/KemoKemo/items/d135ddc93e6f87008521#comment-7d090bd8afe54df429b9

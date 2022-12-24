@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	_ "embed"
+	"fmt"
 	"time"
 
+	"github.com/hokorobi/go-utils/logutil"
 	"github.com/lxn/walk"
 	"github.com/lxn/walk/declarative"
 	"github.com/lxn/win"
@@ -39,8 +41,13 @@ func alarm(s string) {
 		MinSize:  winsize,
 		MaxSize:  winsize,
 		Size:     winsize,
-		Icon:     icon,
-		Layout:   declarative.VBox{},
+		// TODO: close ESC key
+		// FIXME: 反応なし
+		OnKeyDown: func(k walk.Key) {
+			logutil.PrintTee(fmt.Sprintf("Key Press : %#v\n", k))
+		},
+		Icon:   icon,
+		Layout: declarative.VBox{},
 		Children: []declarative.Widget{
 			declarative.LinkLabel{
 				Text:    message,
@@ -120,6 +127,10 @@ func (aw *alarmWindow) getWindowPos() (int32, int32) {
 	var r win.RECT
 	win.GetWindowRect(aw.mw.Handle(), &r)
 	return r.Left, r.Top
+}
+func (aw *alarmWindow) keyPress(k walk.Key) {
+	logutil.PrintTee(fmt.Sprintf("Key Press : %#v\n", k))
+	aw.mw.Close()
 }
 func newAw() alarmWindow {
 	var aw alarmWindow

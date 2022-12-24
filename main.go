@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/go-co-op/gocron"
+	"github.com/go-toast/toast"
 	"github.com/hokorobi/go-utils/logutil"
 	"github.com/lxn/win"
 	"github.com/rodolfoag/gow32"
@@ -40,6 +41,7 @@ func main() {
 		}
 		templist := newAlarmList()
 		templist.add(*item)
+		notification(*item)
 		os.Exit(0)
 	}
 
@@ -89,6 +91,18 @@ func parseInTokyo(layout string, value string) (time.Time, error) {
 		return t, err
 	}
 	return t, nil
+}
+
+func notification(item alarmItem) {
+	notify := toast.Notification{
+		AppID:   "MultiGoAlarm",
+		Title:   "Add Alarm",
+		Message: item.End.Format("15:04:05") + " " + item.Message,
+	}
+	err := notify.Push()
+	if err != nil {
+		logg(err)
+	}
 }
 
 func getIcon(icon []byte) image.Image {

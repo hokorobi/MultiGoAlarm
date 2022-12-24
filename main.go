@@ -30,23 +30,34 @@ func main() {
 	flag.Parse()
 
 	if *listTimer {
+		var templist = loadAlarmList()
+		templist.sort()
+		var message = ""
+		for i := range templist.list {
+			var item = templist.list[i]
+			if message != "" {
+				message = message + "\n"
+			}
+			message = message + item.End.Format("15:04:05") + " " + item.Message
+		}
 		win.MessageBox(
 			win.HWND(0),
-			UTF16PtrFromString(""),
+			UTF16PtrFromString(message),
 			UTF16PtrFromString(""),
 			win.MB_OK)
 	}
+
 	_, err := gow32.CreateMutex("MultiGoAlarm")
 	if err != nil {
-		if len(os.Args) == 0 {
+		if len(flag.Args()) == 0 {
 			os.Exit(1)
 		}
 
-		item := newAlarmItem(strings.Join(os.Args[1:], " "))
+		item := newAlarmItem(strings.Join(flag.Args(), " "))
 		if item == nil {
 			win.MessageBox(
 				win.HWND(0),
-				UTF16PtrFromString("Error: Enter valid time format:"+strings.Join(os.Args[1:], " ")),
+				UTF16PtrFromString("Error: Enter valid time format:"+strings.Join(flag.Args(), " ")),
 				UTF16PtrFromString("Error"),
 				win.MB_OK+win.MB_ICONEXCLAMATION)
 			os.Exit(1)

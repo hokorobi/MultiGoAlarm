@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sort"
 	"time"
 
 	"github.com/go-toast/toast"
@@ -27,6 +28,11 @@ func (list *alarmList) add(item alarmItem) {
 	list.write()
 	logg("Add Alarm: " + item.End.Format("15:04:05") + " " + item.Message)
 	notification(item)
+}
+func (list *alarmList) sort() {
+	sort.Slice(list.list, func(i, j int) bool {
+		return list.list[i].End.Before(*list.list[j].End)
+	})
 }
 
 func notification(item alarmItem) {

@@ -33,7 +33,7 @@ func alarm(s string) {
 		logg(err)
 	}
 
-	winsize := declarative.Size{Width: 300, Height: 300}
+	winsize := declarative.Size{Width: 400, Height: 300}
 	// FIXME: too big button
 	err = declarative.MainWindow{
 		AssignTo: &aw.mw,
@@ -41,13 +41,8 @@ func alarm(s string) {
 		MinSize:  winsize,
 		MaxSize:  winsize,
 		Size:     winsize,
-		// TODO: close ESC key
-		// FIXME: 反応なし
-		OnKeyDown: func(k walk.Key) {
-			logutil.PrintTee(fmt.Sprintf("Key Press : %#v\n", k))
-		},
-		Icon:   icon,
-		Layout: declarative.VBox{},
+		Icon:     icon,
+		Layout:   declarative.VBox{},
 		Children: []declarative.Widget{
 			declarative.LinkLabel{
 				Text:    message,
@@ -74,6 +69,7 @@ func alarm(s string) {
 	win.SetWindowPos(aw.mw.Handle(), win.HWND_TOPMOST, 0, 0, 0, 0, win.SWP_FRAMECHANGED|win.SWP_NOMOVE|win.SWP_NOSIZE)
 
 	// FIXME: ウィンドウ表示時にフォーカスを移したい
+	// すぐ閉じてしまうのでない方がいいかも。
 	aw.alarm()
 
 	aw.mw.Run()

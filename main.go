@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"image"
 	"image/png"
 	"io"
@@ -13,7 +14,6 @@ import (
 	"time"
 
 	"github.com/go-co-op/gocron"
-	"github.com/go-toast/toast"
 	"github.com/hokorobi/go-utils/logutil"
 	"github.com/lxn/win"
 	"github.com/rodolfoag/gow32"
@@ -24,6 +24,18 @@ type app struct {
 }
 
 func main() {
+	var (
+		listTimer = flag.Bool("l", false, "Print timer list.")
+	)
+	flag.Parse()
+
+	if *listTimer {
+		win.MessageBox(
+			win.HWND(0),
+			UTF16PtrFromString(""),
+			UTF16PtrFromString(""),
+			win.MB_OK)
+	}
 	_, err := gow32.CreateMutex("MultiGoAlarm")
 	if err != nil {
 		if len(os.Args) == 0 {
@@ -35,13 +47,12 @@ func main() {
 			win.MessageBox(
 				win.HWND(0),
 				UTF16PtrFromString("Error: Enter valid time format:"+strings.Join(os.Args[1:], " ")),
-				UTF16PtrFromString("URL を開く周期を指定してください"),
+				UTF16PtrFromString("Error"),
 				win.MB_OK+win.MB_ICONEXCLAMATION)
 			os.Exit(1)
 		}
-		templist := newAlarmList()
+		templist := loadAlarmList()
 		templist.add(*item)
-		notification(*item)
 		os.Exit(0)
 	}
 
@@ -57,7 +68,7 @@ func main() {
 
 func newApp() app {
 	var app app
-	app.list = newAlarmList()
+	app.list = loadAlarmList()
 	return app
 }
 
@@ -91,18 +102,6 @@ func parseInTokyo(layout string, value string) (time.Time, error) {
 		return t, err
 	}
 	return t, nil
-}
-
-func notification(item alarmItem) {
-	notify := toast.Notification{
-		AppID:   "MultiGoAlarm",
-		Title:   "Add Alarm",
-		Message: item.End.Format("15:04:05") + " " + item.Message,
-	}
-	err := notify.Push()
-	if err != nil {
-		logg(err)
-	}
 }
 
 func getIcon(icon []byte) image.Image {

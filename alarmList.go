@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/go-toast/toast"
 	"github.com/lxn/walk"
 )
 
@@ -12,7 +13,7 @@ type alarmList struct {
 	list []alarmItem
 }
 
-func newAlarmList() *alarmList {
+func loadAlarmList() *alarmList {
 	m := &alarmList{list: make([]alarmItem, 0)}
 	m.file = newAlarmListFile()
 	m.load()
@@ -25,6 +26,19 @@ func (list *alarmList) add(item alarmItem) {
 	list.list = append(list.list, item)
 	list.write()
 	logg("Add Alarm: " + item.End.Format("15:04:05") + " " + item.Message)
+	notification(item)
+}
+
+func notification(item alarmItem) {
+	notify := toast.Notification{
+		AppID:   "MultiGoAlarm",
+		Title:   "Add Alarm",
+		Message: item.End.Format("15:04:05") + " " + item.Message,
+	}
+	err := notify.Push()
+	if err != nil {
+		logg(err)
+	}
 }
 
 func (list *alarmList) del(i int) {

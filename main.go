@@ -38,6 +38,11 @@ func main() {
 		messageBox(message, "", win.MB_OK)
 	}
 
+	_, isRunning := gow32.CreateMutex("MultiGoAlarm")
+	if isRunning == nil {
+		logutil.PrintTee("Start")
+		defer logutil.PrintTee("End")
+	}
 	if len(flag.Args()) > 0 {
 		item := newAlarmItem(strings.Join(flag.Args(), " "))
 		if item == nil {
@@ -50,14 +55,9 @@ func main() {
 			templist.add(*item)
 		}
 	}
-
-	_, err := gow32.CreateMutex("MultiGoAlarm")
-	if err != nil {
+	if isRunning != nil {
 		os.Exit(0)
 	}
-
-	logutil.PrintTee("Start")
-	defer logutil.PrintTee("End")
 
 	app := newApp()
 

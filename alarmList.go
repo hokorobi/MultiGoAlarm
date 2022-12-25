@@ -64,7 +64,6 @@ func (list *alarmList) delID(id string) {
 
 func (list *alarmList) update() []alarmItem {
 	var candidateItems []alarmItem
-	var candidateIds []string
 
 	now := time.Now()
 	list.load()
@@ -72,15 +71,16 @@ func (list *alarmList) update() []alarmItem {
 		// 終了時刻を過ぎている or 同じ
 		if list.list[i].isTimeUp(now) {
 			candidateItems = append(candidateItems, list.list[i])
-			candidateIds = append(candidateIds, list.list[i].ID)
-		} else {
-			list.list[i].setValue(now)
 		}
 	}
-	for i := range candidateIds {
-		list.delID(candidateIds[i])
+	if len(candidateItems) == 0 {
+		return candidateItems
 	}
 
+	for i := range candidateItems {
+		list.delID(candidateItems[i].ID)
+	}
+	list.write()
 	return candidateItems
 }
 

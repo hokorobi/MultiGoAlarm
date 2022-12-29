@@ -73,14 +73,13 @@ func (list *alarmList) update() []alarmItem {
 			candidateItems = append(candidateItems, list.list[i])
 		}
 	}
-	if len(candidateItems) == 0 {
-		return candidateItems
+	if len(candidateItems) > 0 {
+		for i := range candidateItems {
+			list.delID(candidateItems[i].ID)
+		}
 	}
-
-	for i := range candidateItems {
-		list.delID(candidateItems[i].ID)
-	}
-	list.write()
+	// list.delID -> list.del -> list.write
+	//list.write()
 	return candidateItems
 }
 

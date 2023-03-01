@@ -1,249 +1,100 @@
 package main
 
 import (
-	"bytes"
-	_ "embed"
-	"image"
-	"image/png"
-	"io"
-	"log"
+	"flag"
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
-	"github.com/go-toast/toast"
-	"github.com/lxn/walk"
-	"github.com/lxn/walk/declarative"
+	"github.com/go-co-op/gocron"
+	"github.com/hokorobi/go-utils/logutil"
 	"github.com/lxn/win"
 	"github.com/rodolfoag/gow32"
 )
 
-//go:embed icon/alarm-check.png
-var imgAlarmCheck []byte
+type app struct {
+	list *alarmList
+}
 
 func main() {
-	_, err := gow32.CreateMutex("MultiGoAlarm")
-	if err != nil {
-		if len(os.Args) > 1 {
-			item := newAlarmItem(strings.Join(os.Args[1:], " "))
-			if item == nil {
-				logf("Error: Enter valid time format:" + strings.Join(os.Args[1:], " "))
+	var (
+		listAlarms = flag.Bool("l", false, "Print timer list.")
+	)
+	flag.Parse()
+
+	if *listAlarms {
+		var templist = loadAlarmList()
+		templist.sort()
+		var message = ""
+		for i := range templist.list {
+			var item = templist.list[i]
+			if message != "" {
+				message = message + "\n"
 			}
-			list := newAlarmList()
-			list.add(*item)
-			notification(*item)
-			os.Exit(0)
+			message = message + item.End.Format("15:04:05") + " " + item.Message
 		}
-		os.Exit(1)
+		messageBox(message, "", win.MB_OK)
+	}
+
+	_, isRunning := gow32.CreateMutex("MultiGoAlarm")
+	if isRunning == nil {
+		logutil.PrintTee("Start")
+		defer logutil.PrintTee("End")
+	}
+	if len(flag.Args()) > 0 {
+		item := newAlarmItem(strings.Join(flag.Args(), " "))
+		if item == nil {
+			messageBox(
+				"Error: Enter valid time format:"+strings.Join(flag.Args(), " "),
+				"Error",
+				win.MB_OK+win.MB_ICONEXCLAMATION)
+		} else {
+			templist := loadAlarmList()
+			templist.add(*item)
+		}
+	}
+	if isRunning != nil {
+		os.Exit(0)
 	}
 
 	app := newApp()
 
-	t := time.NewTicker(time.Second)
-	defer t.Stop()
-	go func() {
-		for {
-			select {
-			case <-t.C:
-				app.update()
-			}
-		}
-	}()
-
-	logg("Run.")
-	defer logg("Stop.")
-
-	if len(os.Args) > 1 {
-		item := newAlarmItem(strings.Join(os.Args[1:], " "))
-		if item == nil {
-			// TODO: Focus on display
-			walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
-		} else {
-			app.list.add(*item)
-			notification(*item)
-		}
-	}
-
-	err = declarative.MainWindow{
-		AssignTo: &app.mw,
-		Title:    "MultiGoAlarm",
-		MinSize:  declarative.Size{Width: 400, Height: 300},
-		Size:     declarative.Size{Width: 400, Height: 300},
-		Visible:  false,
-		Layout:   declarative.VBox{},
-		Children: []declarative.Widget{
-			declarative.ListBox{
-				AssignTo:        &app.lb,
-				Model:           app.list,
-				OnItemActivated: app.lbItemActivated,
-				Row:             10,
-			},
-			declarative.PushButton{
-				Text:      "&Add",
-				OnClicked: app.clickAddDlg,
-			},
-		},
-		// Minimize to hide window
-		OnSizeChanged: func() {
-			if win.IsIconic(app.mw.Handle()) {
-				app.mw.Hide()
-			}
-		},
-	}.Create()
-	if err != nil {
-		logf(err)
-	}
-
-	// https://github.com/lxn/walk/issues/127
-	app.addNotifyIcon()
-	defer app.ni.Dispose()
-	app.mw.Run()
-}
-
-type app struct {
-	mw    *walk.MainWindow
-	lb    *walk.ListBox
-	list  *alarmList
-	ni    *walk.NotifyIcon
-	count int
+	sc := gocron.NewScheduler(time.UTC)
+	sc.Every(1).Seconds().Do(app.update)
+	sc.StartBlocking()
 }
 
 func newApp() app {
 	var app app
-	var err error
-	app.mw, err = walk.NewMainWindow()
-	if err != nil {
-		logf(err)
-	}
-	app.list = newAlarmList()
+	app.list = loadAlarmList()
 	return app
 }
 func (app *app) update() {
 	items := app.list.update()
 	app.alarm(items)
-
-	if !app.mw.Visible() {
-		return
-	}
-
-	if app.count == 0 && app.count == len(app.list.list) {
-		return
-	}
-
-	idx := app.lb.CurrentIndex()
-	app.lb.SetModel(app.list)
-	app.count = len(app.list.list)
-	err := app.lb.SetCurrentIndex(idx)
-	if err != nil {
-		logg(err)
-	}
 }
 func (app *app) alarm(items []alarmItem) {
 	for i := range items {
 		go alarm(items[i].Message)
-		logg("Alarm: " + items[i].End.Format("15:04:05") + " " + items[i].Message)
+		logutil.PrintTee("Alarm: " + items[i].End.Format("15:04:05") + " " + items[i].Message)
 		time.Sleep(100 * time.Millisecond)
 	}
 }
-func (app *app) lbItemActivated() {
-	if app.lb.CurrentIndex() < 0 {
-		return
-	}
 
-	app.list.del(app.lb.CurrentIndex())
-	app.lb.SetModel(app.list)
-}
-func (app *app) clickAddDlg() {
-	newText := new(additionalAlarmText)
-	cmd, err := additionalDialog(app.mw, newText)
-	if err != nil {
-		walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
-		return
-	}
-	if cmd != walk.DlgCmdOK {
-		return
-	}
-
-	item := newAlarmItem(newText.Text)
-	if item == nil {
-		walk.MsgBox(app.mw, "Error", "Enter valid time", walk.MsgBoxOK|walk.MsgBoxIconError)
-		return
-	}
-	app.list.add(*item)
-	notification(*item)
-	// app.lb.SetModel は app.update() で反映
-}
-func (app *app) addNotifyIcon() {
-	var err error
-	app.ni, err = walk.NewNotifyIcon(app.mw)
-	if err != nil {
-		logf(err)
-	}
-
-	icon, err := walk.NewIconFromImageForDPI(getIcon(imgAlarmCheck), 96)
-	if err != nil {
-		logf(err)
-	}
-	err = app.mw.SetIcon(icon)
-	if err != nil {
-		logf(err)
-	}
-	err = app.ni.SetIcon(icon)
-	if err != nil {
-		logf(err)
-	}
-
-	// We put an exit action into the context menu.
-	exitAction := walk.NewAction()
-	err = exitAction.SetText("E&xit")
-	if err != nil {
-		logf(err)
-	}
-	exitAction.Triggered().Attach(
-		func() {
-			app.ni.Dispose()
-			// TODO: Improve exit
-			os.Exit(0)
-		},
-	)
-	err = app.ni.ContextMenu().Actions().Add(exitAction)
-	if err != nil {
-		logf(err)
-	}
-
-	app.ni.SetVisible(true)
-	app.ni.MouseDown().Attach(func(x, y int, button walk.MouseButton) {
-		if button == walk.LeftButton {
-			app.mw.Show()
-			win.ShowWindow(app.mw.Handle(), win.SW_RESTORE)
-		}
-	})
-
+func messageBox(message, title string, uType uint32) {
+	win.MessageBox(
+		win.HWND(0),
+		UTF16PtrFromString(message),
+		UTF16PtrFromString(title),
+		uType)
 }
 
-func getIcon(icon []byte) image.Image {
-	img, err := png.Decode(bytes.NewReader(icon))
-	if err != nil {
-		logf(err)
-	}
-	return img
-}
-
-type additionalAlarmText struct {
-	Text string
-}
-
-func notification(item alarmItem) {
-	notify := toast.Notification{
-		AppID:   "MultiGoAlarm",
-		Title:   "Add Alarm",
-		Message: item.End.Format("15:04:05") + " " + item.Message,
-	}
-	err := notify.Push()
-	if err != nil {
-		logg(err)
-	}
+// "Go から Windows の MessageBox を呼び出す - Qiita" https://qiita.com/manymanyuni/items/867d7e0112ce22dec6d5
+func UTF16PtrFromString(s string) *uint16 {
+	result, _ := syscall.UTF16PtrFromString(s)
+	return result
 }
 
 // https://qiita.com/KemoKemo/items/d135ddc93e6f87008521#comment-7d090bd8afe54df429b9
@@ -253,20 +104,4 @@ func getFileNameWithoutExt(path string) string {
 func getFilename(ext string) string {
 	exec, _ := os.Executable()
 	return filepath.Join(filepath.Dir(exec), getFileNameWithoutExt(exec)+ext)
-}
-
-func logg(m interface{}) {
-	f, err := os.OpenFile(getFilename(".log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-	if err != nil {
-		panic("Cannot open log file: " + err.Error())
-	}
-	defer f.Close()
-
-	log.SetOutput(io.MultiWriter(f, os.Stderr))
-	log.SetFlags(log.Ldate | log.Ltime)
-	log.Println(m)
-}
-func logf(m interface{}) {
-	logg(m)
-	os.Exit(1)
 }

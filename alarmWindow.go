@@ -1,10 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
+	"fmt"
+	"image"
+	"image/png"
 	"time"
 
+	"github.com/hokorobi/go-utils/logutil"
 	"github.com/lxn/walk"
 	"github.com/lxn/walk/declarative"
 	"github.com/lxn/win"
@@ -28,10 +33,10 @@ func alarm(s string) {
 
 	icon, err := walk.NewIconFromImageForDPI(getIcon(imgAlarmNote), 96)
 	if err != nil {
-		logg(err)
+		logutil.PrintTee(err)
 	}
 
-	winsize := declarative.Size{Width: 300, Height: 300}
+	winsize := declarative.Size{Width: 400, Height: 300}
 	// FIXME: too big button
 	err = declarative.MainWindow{
 		AssignTo: &aw.mw,
@@ -55,7 +60,7 @@ func alarm(s string) {
 		},
 	}.Create()
 	if err != nil {
-		logf(err)
+		logutil.FatalTee(err)
 	}
 
 	// Windowスタイルの動的変更　その3 トップレベル表示: Xo式　実験室（labo.xo-ox.net）
@@ -67,6 +72,7 @@ func alarm(s string) {
 	win.SetWindowPos(aw.mw.Handle(), win.HWND_TOPMOST, 0, 0, 0, 0, win.SWP_FRAMECHANGED|win.SWP_NOMOVE|win.SWP_NOSIZE)
 
 	// FIXME: ウィンドウ表示時にフォーカスを移したい
+	// すぐ閉じてしまうのでない方がいいかも。
 	aw.alarm()
 
 	aw.mw.Run()
@@ -121,14 +127,26 @@ func (aw *alarmWindow) getWindowPos() (int32, int32) {
 	win.GetWindowRect(aw.mw.Handle(), &r)
 	return r.Left, r.Top
 }
+func (aw *alarmWindow) keyPress(k walk.Key) {
+	logutil.PrintTee(fmt.Sprintf("Key Press : %#v\n", k))
+	aw.mw.Close()
+}
 func newAw() alarmWindow {
 	var aw alarmWindow
 	var err error
 
 	aw.mw, err = walk.NewMainWindow()
 	if err != nil {
-		logf(err)
+		logutil.FatalTee(err)
 	}
 
 	return aw
+}
+
+func getIcon(icon []byte) image.Image {
+	img, err := png.Decode(bytes.NewReader(icon))
+	if err != nil {
+		logutil.FatalTee(err)
+	}
+	return img
 }

@@ -1,8 +1,11 @@
 package main
 
 import (
+	"sort"
 	"time"
 
+	"github.com/go-toast/toast"
+	"github.com/hokorobi/go-utils/logutil"
 	"github.com/lxn/walk"
 )
 
@@ -12,7 +15,7 @@ type alarmList struct {
 	list []alarmItem
 }
 
-func newAlarmList() *alarmList {
+func loadAlarmList() *alarmList {
 	m := &alarmList{list: make([]alarmItem, 0)}
 	m.file = newAlarmListFile()
 	m.load()
@@ -24,7 +27,25 @@ func (list *alarmList) add(item alarmItem) {
 	list.load()
 	list.list = append(list.list, item)
 	list.write()
-	logg("Add Alarm: " + item.End.Format("15:04:05") + " " + item.Message)
+	logutil.PrintTee("Add Alarm: " + item.End.Format("15:04:05") + " " + item.Message)
+	notification(item)
+}
+func (list *alarmList) sort() {
+	sort.Slice(list.list, func(i, j int) bool {
+		return list.list[i].End.Before(*list.list[j].End)
+	})
+}
+
+func notification(item alarmItem) {
+	notify := toast.Notification{
+		AppID:   "MultiGoAlarm",
+		Title:   "Add Alarm",
+		Message: item.End.Format("15:04:05") + " " + item.Message,
+	}
+	err := notify.Push()
+	if err != nil {
+		logutil.PrintTee(err)
+	}
 }
 
 func (list *alarmList) del(i int) {
@@ -43,7 +64,6 @@ func (list *alarmList) delID(id string) {
 
 func (list *alarmList) update() []alarmItem {
 	var candidateItems []alarmItem
-	var candidateIds []string
 
 	now := time.Now()
 	list.load()
@@ -51,15 +71,15 @@ func (list *alarmList) update() []alarmItem {
 		// 終了時刻を過ぎている or 同じ
 		if list.list[i].isTimeUp(now) {
 			candidateItems = append(candidateItems, list.list[i])
-			candidateIds = append(candidateIds, list.list[i].ID)
-		} else {
-			list.list[i].setValue(now)
 		}
 	}
-	for i := range candidateIds {
-		list.delID(candidateIds[i])
+	if len(candidateItems) > 0 {
+		for i := range candidateItems {
+			list.delID(candidateItems[i].ID)
+		}
 	}
-
+	// list.delID -> list.del -> list.write
+	//list.write()
 	return candidateItems
 }
 
